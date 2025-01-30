@@ -137,6 +137,16 @@ export default function Map() {
             console.warn(`Could not toggle EPA layer ${layerName}:`, error)
           }
         }
+      } else if (layerId === 'reservations') {
+        ['reservations-layer', 'reservations-outline-layer'].forEach(layerName => {
+          if (map.current.getLayer(layerName)) {
+            map.current.setLayoutProperty(
+              layerName,
+              'visibility',
+              visibility ? 'visible' : 'none'
+            )
+          }
+        })
       } else {
         const layerName = `${layerId}-layer`
         if (map.current.getLayer(layerName)) {
@@ -492,16 +502,59 @@ export default function Map() {
 
         // First, let's add back the reservations layer (add this after the distressed layer)
         map.current.addLayer({
+          id: 'reservations-outline-layer',
+          type: 'line',
+          source: 'reservations',
+          paint: {
+            'line-color': '#5BAFAE', // Darker version of #7FDBDA
+            'line-width': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              2, 1,    // 1px at zoom level 2
+              4, 1.5,  // 1.5px at zoom level 4
+              8, 2     // 2px at zoom level 8
+            ]
+          },
+          layout: {
+            visibility: layerVisibility.reservations ? 'visible' : 'none'
+          }
+        }, 'states-layer')
+
+        map.current.addLayer({
           id: 'reservations-layer',
           type: 'fill',
           source: 'reservations',
           paint: {
-            'fill-color': '#98FB98',
+            'fill-color': [
+              'match',
+              ['get', 'STATEFP'],
+              // Pacific West states
+              ['02', '06', '15', '32', '41', '53'],
+              REGION_COLORS['Pacific West'],
+              // West Central states
+              ['08', '16', '20', '27', '30', '31', '35', '38', '46', '49', '56'],
+              REGION_COLORS['West Central'],
+              // South Central states
+              ['05', '22', '28', '40', '48'],
+              REGION_COLORS['South Central'],
+              // East Central states
+              ['17', '18', '21', '26', '39', '54', '55'],
+              REGION_COLORS['East Central'],
+              // Southeast states
+              ['12', '13', '37', '45', '51'],
+              REGION_COLORS['Southeast'],
+              // Northeast states
+              ['09', '10', '11', '23', '24', '25', '33', '34', '36', '42', '44', '50'],
+              REGION_COLORS['Northeast'],
+              // Default color
+              REGION_COLORS['Native Tribes']
+            ],
             'fill-opacity': [
               'interpolate',
               ['linear'],
               ['zoom'],
-              2, 0.3,  // Start showing at zoom level 2
+              2, 0.3,
               4, 0.4,
               8, 0.5
             ]
@@ -509,7 +562,7 @@ export default function Map() {
           layout: {
             visibility: layerVisibility.reservations ? 'visible' : 'none'
           }
-        }, 'states-layer') // Add before states layer
+        }, 'states-layer')
 
       } catch (error) {
         console.error('Error loading data:', error)
@@ -561,7 +614,7 @@ export default function Map() {
               checked={layerVisibility.distressed}
               onChange={() => toggleLayer('distressed')}
             />
-            Distressed Areas
+            Tribal Nations
           </label>
         </div>
         <div>
