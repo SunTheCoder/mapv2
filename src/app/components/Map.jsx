@@ -614,7 +614,7 @@ export default function Map() {
               checked={layerVisibility.distressed}
               onChange={() => toggleLayer('distressed')}
             />
-            Tribal Nations
+            Distressed Areas
           </label>
         </div>
         <div>
@@ -624,7 +624,7 @@ export default function Map() {
               checked={layerVisibility.reservations}
               onChange={() => toggleLayer('reservations')}
             />
-            Reservations
+            Tribal Nations
           </label>
         </div>
         <div>
