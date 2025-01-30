@@ -176,17 +176,10 @@ export default function Map() {
         const reservationsResponse = await fetch(S3_URLS.reservations)
         const reservationsData = await reservationsResponse.json()
 
-        // Add sources
+        // Add sources first
         map.current.addSource('states', {
           type: 'geojson',
           data: statesData
-        })
-
-        // Update the distressed source to use vector tiles API
-        console.log('Adding distressed source...')
-        map.current.addSource('distressed', {
-          type: 'vector',
-          url: 'mapbox://sunthecoder.05as12la'  // Try using mapbox:// protocol first
         })
 
         map.current.addSource('reservations', {
@@ -194,7 +187,21 @@ export default function Map() {
           data: reservationsData
         })
 
-        // Add EPA disadvantaged communities sources and layers
+        // Add states layer FIRST
+        map.current.addLayer({
+          id: 'states-layer',
+          type: 'line',
+          source: 'states',
+          paint: {
+            'line-color': '#627BC1',
+            'line-width': 1
+          },
+          layout: {
+            visibility: layerVisibility.states ? 'visible' : 'none'
+          }
+        })
+
+        // THEN add EPA layers
         for (let i = 1; i <= 7; i++) {
           const sourceId = `epa-disadvantaged-${i}`
           const layerId = `epa-disadvantaged-layer-${i}`
@@ -209,97 +216,58 @@ export default function Map() {
             7: '3o6ipd1b'
           }
 
+          const chunkNames = {
+            1: 'chunk1-02ygln',
+            2: 'chunk2-5cjb35',
+            3: 'chunk3-7jtncu',
+            4: 'chunk4-1ijozj',
+            5: 'chunk5-0co1hs',
+            6: 'chunk6-4kprjw',
+            7: 'chunk7-6h9546'
+          }
+
           console.log(`Adding source ${sourceId} with tileset ID ${tilesetIds[i]}`)
 
-          // Add source
           map.current.addSource(sourceId, {
             type: 'vector',
             url: `mapbox://sunthecoder.${tilesetIds[i]}`
           })
 
-          // Add layer immediately instead of waiting for sourcedata event
           try {
             map.current.addLayer({
               id: layerId,
               type: 'fill',
               source: sourceId,
-              'source-layer': 'default',
-              minzoom: 4, // Start showing at zoom level 4
+              'source-layer': chunkNames[i],
+              minzoom: 2,
               paint: {
                 'fill-color': '#FF0000',
                 'fill-opacity': [
                   'interpolate',
                   ['linear'],
                   ['zoom'],
-                  4, 0.3,  // More transparent at low zoom
-                  8, 0.8   // More opaque at high zoom
+                  2, 0.2,
+                  3, 0.3,
+                  4, 0.5,
+                  8, 0.8
                 ],
                 'fill-outline-color': '#000000'
               },
               layout: {
-                visibility: 'visible'
+                visibility: layerVisibility.epaDisadvantaged ? 'visible' : 'none'
               }
             })
-            console.log(`Added layer ${layerId}`)
+            console.log(`Added layer ${layerId} with source-layer ${chunkNames[i]}`)
           } catch (error) {
             console.error(`Error adding layer ${layerId}:`, error)
           }
-
-          // Add source error handling
-          map.current.on('sourcedataloading', (e) => {
-            if (e.sourceId === sourceId) {
-              console.log(`Loading data for source ${sourceId}`)
-            }
-          })
-
-          map.current.on('sourcedata', (e) => {
-            if (e.sourceId === sourceId && e.isSourceLoaded) {
-              const source = map.current.getSource(sourceId)
-              console.log(`Source loaded for ${sourceId}:`, {
-                vectorLayerIds: source.vectorLayerIds,
-                tiles: source.tiles,
-                loaded: source.loaded()
-              })
-
-              // If we get the vectorLayerIds, update the source-layer
-              if (source.vectorLayerIds?.length > 0) {
-                const correctSourceLayer = source.vectorLayerIds[0]
-                if (correctSourceLayer !== 'default') {
-                  try {
-                    map.current.removeLayer(layerId)
-                    map.current.addLayer({
-                      id: layerId,
-                      type: 'fill',
-                      source: sourceId,
-                      'source-layer': correctSourceLayer,
-                      paint: {
-                        'fill-color': '#FF0000',
-                        'fill-opacity': 0.8,
-                        'fill-outline-color': '#000000'
-                      },
-                      layout: {
-                        visibility: 'visible'
-                      }
-                    })
-                    console.log(`Updated layer ${layerId} with correct source-layer: ${correctSourceLayer}`)
-                  } catch (error) {
-                    console.error(`Error updating layer ${layerId}:`, error)
-                  }
-                }
-              }
-            }
-          })
         }
 
-        // Add layers
-        map.current.addLayer({
-          id: 'states-layer',
-          type: 'line',
-          source: 'states',
-          paint: {
-            'line-color': '#627BC1',
-            'line-width': 1
-          }
+        // Update the distressed source to use vector tiles API
+        console.log('Adding distressed source...')
+        map.current.addSource('distressed', {
+          type: 'vector',
+          url: 'mapbox://sunthecoder.05as12la'  // Try using mapbox:// protocol first
         })
 
         // Update the distressed layer with similar settings to EPA layers
