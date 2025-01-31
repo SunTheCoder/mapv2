@@ -753,6 +753,11 @@ export default function Map() {
                 Zoom in to see EPA data (zoom ≥ 4)
               </div>
             )}
+            {currentZoom < 6 && (
+              <div style={{ color: '#666' }}>
+                Zoom in to see Distressed Community data (zoom ≥ 6)
+              </div>
+            )}
           </div>
           <button
             onClick={() => map.current && fitToAllEPAData(map.current)}
