@@ -630,32 +630,40 @@ export default function Map() {
             .addTo(map.current)
         })
 
-        // Optional: Add click handler for EPA disadvantaged areas
-        map.current.on('click', 'epa-disadvantaged-layer-1', (e) => {
-          const coordinates = e.lngLat
-          const properties = e.features[0].properties
+        // Add click handlers for all EPA layers
+        for (let i = 1; i <= 7; i++) {
+          map.current.on('click', `epa-disadvantaged-layer-${i}`, (e) => {
+            const coordinates = e.lngLat
+            const properties = e.features[0].properties
 
-          // Format the popup content
-          const content = `
-            <div style="padding: 8px; color: black;">
-              <h3 style="margin: 0 0 8px 0; color: black;">EPA Disadvantaged Community</h3>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.GEOID10}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.STATE}</p>
-              <p style="margin: 0; color: black;">This area has been identified by the EPA as disadvantaged based on environmental and socioeconomic factors.</p>
-            </div>
-          `
-
-          popup
-            .setLngLat(coordinates)
-            .setHTML(content)
-            .addTo(map.current)
-        })
-
-        // Close popup when clicking elsewhere on the map
-        map.current.on('click', (e) => {
-          const features = map.current.queryRenderedFeatures(e.point, {
-            layers: ['reservations-layer', 'distressed-layer', 'epa-disadvantaged-layer-1']
+            // Format the popup content
+            const content = `
+              <div style="padding: 8px; color: black;">
+                <h3 style="margin: 0 0 8px 0; color: black;">EPA Disadvantaged Community</h3>
+                <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.GEOID10}</p>
+                <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.SF}</p>
+                <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.CF}</p>
+               
+                <p style="margin: 0; color: black;"><em>This area has been identified by the EPA as disadvantaged based on environmental and socioeconomic factors.</em></p>
+              </div>
+            `
+            console.log(properties)
+            popup
+              .setLngLat(coordinates)
+              .setHTML(content)
+              .addTo(map.current)
           })
+        }
+
+        // Update the click-away handler to include all EPA layers
+        map.current.on('click', (e) => {
+          const layers = [
+            'reservations-layer', 
+            'distressed-layer', 
+            ...Array.from({length: 7}, (_, i) => `epa-disadvantaged-layer-${i + 1}`)
+          ]
+          
+          const features = map.current.queryRenderedFeatures(e.point, { layers })
           
           if (!features.length) {
             popup.remove()
