@@ -578,11 +578,11 @@ export default function Map() {
 
           // Format the popup content
           const content = `
-            <div style="padding: 8px;">
-              <h3 style="margin: 0 0 8px 0;">Tribal Nation</h3>
-              <p style="margin: 0 0 5px 0;"><strong>Name:</strong> ${properties.NAME}</p>
-              <p style="margin: 0 0 5px 0;"><strong>Latitude:</strong> ${properties.INTPTLAT}</p>
-              <p style="margin: 0;"><strong>Longitude:</strong> ${properties.INTPTLON}</p>
+            <div style="padding: 8px; color: black;">
+              <h3 style="margin: 0 0 8px 0; color: black;">Tribal Nation</h3>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Name:</strong> ${properties.NAME}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Latitude:</strong> ${properties.INTPTLAT}</p>
+              <p style="margin: 0; color: black;"><strong>Longitude:</strong> ${properties.INTPTLON}</p>
             </div>
           `
           console.log(properties)
@@ -600,25 +600,25 @@ export default function Map() {
 
           // Format the popup content
           const content = `
-            <div style="padding: 8px;">
-              <h3 style="margin: 0 0 8px 0;">Distressed Area</h3>
-              <p style="margin: 0 0 5px 0;"><strong>County:</strong> ${properties.CBSA}</p>
-              <p style="margin: 0 0 5px 0;"><strong>City:</strong> ${properties.City}</p>
-              <p style="margin: 0 0 5px 0;"><strong>State:</strong> ${properties.State}</p>
-              <p style="margin: 0 0 5px 0;"><strong>County:</strong> ${properties.County}</p>
-              <p style="margin: 0 0 5px 0;"><strong>Zipcode:</strong> ${properties.Zipcode}</p>
-              <p style="margin: 0 0 5px 0;"><strong>GeoID:</strong> ${properties.GEOID10}</p>
-              <p style="margin: 0 0 5px 0;"><strong>Quintile:</strong> ${properties.Quintile__}</p>
-              <p style="margin: 0 0 5px 0;"><strong>Total Population:</strong> ${properties.Total_Popu}</p>
-              <p style="margin: 0 0 5px 0;"><strong>Census Region:</strong> ${properties.Census_Reg}</p>
-              <p style="margin: 0 0 5px 0;"><strong>Urban or Rural:</strong> ${properties.Urban_Rura}</p>
-              <p style="margin: 0 0 5px 0;"><strong>Distress Score:</strong> ${properties.DistressSc}</p>
+            <div style="padding: 8px; color: black;">
+              <h3 style="margin: 0 0 8px 0; color: black;">Distressed Area</h3>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.CBSA}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>City:</strong> ${properties.City}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.State}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.County}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Zipcode:</strong> ${properties.Zipcode}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>GeoID:</strong> ${properties.GEOID10}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Quintile:</strong> ${properties.Quintile__}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Total Population:</strong> ${properties.Total_Popu}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Census Region:</strong> ${properties.Census_Reg}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Urban or Rural:</strong> ${properties.Urban_Rura}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Distress Score:</strong> ${properties.DistressSc}</p>
 
               ${properties.Poverty_Ra ? 
-                `<p style="margin: 0 0 5px 0;"><strong>Poverty Rate:</strong> ${properties.Poverty_Ra}</p>` 
+                `<p style="margin: 0 0 5px 0; color: black;"><strong>Poverty Rate:</strong> ${properties.Poverty_Ra}</p>` 
                 : ''}
               ${properties.UNEMPLOYMENT ? 
-                `<p style="margin: 0;"><strong>Unemployment Rate:</strong> ${(properties.UNEMPLOYMENT * 100).toFixed(1)}%</p>` 
+                `<p style="margin: 0; color: black;"><strong>Unemployment Rate:</strong> ${(properties.UNEMPLOYMENT * 100).toFixed(1)}%</p>` 
                 : ''}
             </div>
           `
@@ -637,11 +637,11 @@ export default function Map() {
 
           // Format the popup content
           const content = `
-            <div style="padding: 8px;">
-              <h3 style="margin: 0 0 8px 0;">EPA Disadvantaged Community</h3>
-              <p style="margin: 0 0 5px 0;"><strong>Census Tract:</strong> ${properties.GEOID10}</p>
-              <p style="margin: 0 0 5px 0;"><strong>State:</strong> ${properties.STATE}</p>
-              <p style="margin: 0;">This area has been identified by the EPA as disadvantaged based on environmental and socioeconomic factors.</p>
+            <div style="padding: 8px; color: black;">
+              <h3 style="margin: 0 0 8px 0; color: black;">EPA Disadvantaged Community</h3>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.GEOID10}</p>
+              <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.STATE}</p>
+              <p style="margin: 0; color: black;">This area has been identified by the EPA as disadvantaged based on environmental and socioeconomic factors.</p>
             </div>
           `
 
@@ -683,10 +683,11 @@ export default function Map() {
         background: 'white',
         padding: '10px',
         borderRadius: '4px',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+        color: 'black'
       }}>
         <div>
-          <label>
+          <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <input
               type="checkbox"
               checked={layerVisibility.states}
@@ -696,7 +697,7 @@ export default function Map() {
           </label>
         </div>
         <div>
-          <label>
+          <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <input
               type="checkbox"
               checked={layerVisibility.regions}
@@ -706,7 +707,7 @@ export default function Map() {
           </label>
         </div>
         <div>
-          <label>
+          <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <input
               type="checkbox"
               checked={layerVisibility.distressed}
@@ -716,7 +717,7 @@ export default function Map() {
           </label>
         </div>
         <div>
-          <label>
+          <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <input
               type="checkbox"
               checked={layerVisibility.reservations}
@@ -726,7 +727,7 @@ export default function Map() {
           </label>
         </div>
         <div>
-          <label>
+          <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <input
               type="checkbox"
               checked={layerVisibility.epaDisadvantaged}
