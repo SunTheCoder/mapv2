@@ -274,7 +274,7 @@ export default function Map() {
         }
 
         // Update the distressed source to use vector tiles API
-        console.log('Adding distressed source...')
+        // console.log('Adding distressed source...')
         map.current.addSource('distressed', {
           type: 'vector',
           url: 'mapbox://sunthecoder.05as12la'  // Try using mapbox:// protocol first
@@ -283,16 +283,16 @@ export default function Map() {
         // Update the distressed layer with similar settings to EPA layers
         // Add immediate logging for source
         const distressedSource = map.current.getSource('distressed')
-        console.log('Initial distressed source:', {
-          source: distressedSource,
-          vectorLayerIds: distressedSource.vectorLayerIds,
-          tiles: distressedSource.tiles
-        })
+        // console.log('Initial distressed source:', {
+        //   source: distressedSource,
+        //   vectorLayerIds: distressedSource.vectorLayerIds,
+        //   tiles: distressedSource.tiles
+        // })
 
         // Add source loading handler
         map.current.on('sourcedataloading', (e) => {
           if (e.sourceId === 'distressed') {
-            console.log('Distressed source loading:', e)
+            // console.log('Distressed source loading:', e)
           }
         })
 
@@ -300,17 +300,17 @@ export default function Map() {
         map.current.on('sourcedata', (e) => {
           if (e.sourceId === 'distressed') {
             const source = map.current.getSource('distressed')
-            console.log('Distressed source data event:', {
-              isSourceLoaded: e.isSourceLoaded,
-              source: source,
-              vectorLayerIds: source.vectorLayerIds,
-              tiles: source.tiles,
-              loaded: source.loaded?.()
-            })
+            // console.log('Distressed source data event:', {
+            //   isSourceLoaded: e.isSourceLoaded,
+            //   source: source,
+            //   vectorLayerIds: source.vectorLayerIds,
+            //   tiles: source.tiles,
+            //   loaded: source.loaded?.()
+            // })
 
             if (e.isSourceLoaded && source.vectorLayerIds?.length > 0) {
               const sourceLayer = source.vectorLayerIds[0]
-              console.log('Adding distressed layer with source-layer:', sourceLayer)
+              // console.log('Adding distressed layer with source-layer:', sourceLayer)
               
               try {
                 // Remove existing layer if it exists
@@ -348,25 +348,25 @@ export default function Map() {
                 }, beforeLayer)
 
                 // Add debug logging
-                console.log('Distressed layer added with:', {
-                  sourceLayer: 'distressed-arilwv',
-                  visibility: layerVisibility.distressed ? 'visible' : 'none',
-                  beforeLayer
-                })
+                // console.log('Distressed layer added with:', {
+                //   sourceLayer: 'distressed-arilwv',
+                //   visibility: layerVisibility.distressed ? 'visible' : 'none',
+                //   beforeLayer
+                // })
 
                 // Check if layer exists and is visible
                 const layer = map.current.getLayer('distressed-layer')
                 const layout = map.current.getLayoutProperty('distressed-layer', 'visibility')
-                console.log('Distressed layer check:', {
-                  exists: !!layer,
-                  visibility: layout
-                })
+                // console.log('Distressed layer check:', {
+                //   exists: !!layer,
+                //   visibility: layout
+                // })
 
                 // Query features
                 const features = map.current.querySourceFeatures('distressed', {
                   sourceLayer: 'distressed-arilwv'
                 })
-                console.log('Distressed features found:', features.length)
+                // console.log('Distressed features found:', features.length)
 
               } catch (error) {
                 console.error('Error adding distressed layer:', error)
@@ -379,11 +379,11 @@ export default function Map() {
         map.current.on('sourcedata', (e) => {
           if (e.sourceId === 'distressed' && e.isSourceLoaded) {
             const source = map.current.getSource('distressed')
-            console.log('Distressed source loaded:', {
-              vectorLayerIds: source.vectorLayerIds,
-              tiles: source.tiles,
-              loaded: source.loaded()
-            })
+            // console.log('Distressed source loaded:', {
+            //   vectorLayerIds: source.vectorLayerIds,
+            //   tiles: source.tiles,
+            //   loaded: source.loaded()
+            // })
           }
         })
 
@@ -602,16 +602,27 @@ export default function Map() {
           const content = `
             <div style="padding: 8px;">
               <h3 style="margin: 0 0 8px 0;">Distressed Area</h3>
-              <p style="margin: 0 0 5px 0;"><strong>County:</strong> ${properties.NAME}</p>
-              <p style="margin: 0 0 5px 0;"><strong>State:</strong> ${properties.STATE}</p>
-              ${properties.POVERTY_RATE ? `
-                <p style="margin: 0 0 5px 0;"><strong>Poverty Rate:</strong> ${(properties.POVERTY_RATE * 100).toFixed(1)}%</p>
-              ` : ''}
-              ${properties.UNEMPLOYMENT ? `
-                <p style="margin: 0;"><strong>Unemployment Rate:</strong> ${(properties.UNEMPLOYMENT * 100).toFixed(1)}%</p>
-              ` : ''}
+              <p style="margin: 0 0 5px 0;"><strong>County:</strong> ${properties.CBSA}</p>
+              <p style="margin: 0 0 5px 0;"><strong>City:</strong> ${properties.City}</p>
+              <p style="margin: 0 0 5px 0;"><strong>State:</strong> ${properties.State}</p>
+              <p style="margin: 0 0 5px 0;"><strong>County:</strong> ${properties.County}</p>
+              <p style="margin: 0 0 5px 0;"><strong>Zipcode:</strong> ${properties.Zipcode}</p>
+              <p style="margin: 0 0 5px 0;"><strong>GeoID:</strong> ${properties.GEOID10}</p>
+              <p style="margin: 0 0 5px 0;"><strong>Quintile:</strong> ${properties.Quintile__}</p>
+              <p style="margin: 0 0 5px 0;"><strong>Total Population:</strong> ${properties.Total_Popu}</p>
+              <p style="margin: 0 0 5px 0;"><strong>Census Region:</strong> ${properties.Census_Reg}</p>
+              <p style="margin: 0 0 5px 0;"><strong>Urban or Rural:</strong> ${properties.Urban_Rura}</p>
+              <p style="margin: 0 0 5px 0;"><strong>Distress Score:</strong> ${properties.DistressSc}</p>
+
+              ${properties.Poverty_Ra ? 
+                `<p style="margin: 0 0 5px 0;"><strong>Poverty Rate:</strong> ${properties.Poverty_Ra}</p>` 
+                : ''}
+              ${properties.UNEMPLOYMENT ? 
+                `<p style="margin: 0;"><strong>Unemployment Rate:</strong> ${(properties.UNEMPLOYMENT * 100).toFixed(1)}%</p>` 
+                : ''}
             </div>
           `
+          console.log(properties)
 
           popup
             .setLngLat(coordinates)
