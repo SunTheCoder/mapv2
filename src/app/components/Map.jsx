@@ -276,18 +276,6 @@ export default function Map() {
         }
 
         // Update the socially disadvantaged layers section
-        const chunkNames = {
-          1: 'chunk1-social-ckdarq',
-          2: 'chunk2-social-4ctgn8',
-          3: 'chunk3-social-646uk9',
-          4: 'chunk4-social-anksfz',
-          5: 'chunk5-social-0fctz6',
-          6: 'chunk6-social-4ctgn8',
-          7: 'chunk7-social-e46uk9',
-          8: 'chunk8-social-5e0kvm'
-        }
-
-        // Add socially disadvantaged layers
         for (let i = 1; i <= 8; i++) {
           const sourceId = `socially-disadvantaged-${i}`
           const layerId = `socially-disadvantaged-layer-${i}`
@@ -301,6 +289,17 @@ export default function Map() {
             6: '303ru0v2',
             7: 'bmh29r6h',
             8: '5un0jm7v'
+          }
+
+          const chunkNames = {
+            1: 'chunk1-social-ckdarq',
+            2: 'chunk2-social-68p1qu',
+            3: 'chunk3-social-0hp514',
+            4: 'chunk4-social-anksfz',
+            5: 'chunk5-social-0fctz6',
+            6: 'chunk6-social-4ctgn8',
+            7: 'chunk7-social-646uk9',
+            8: 'chunk8-social-5e0kvm'
           }
 
           console.log(`Adding socially disadvantaged source ${sourceId}`)
@@ -333,7 +332,8 @@ export default function Map() {
               layout: {
                 visibility: layerVisibility.sociallyDisadvantaged ? 'visible' : 'none'
               }
-            })
+            }, 'states-layer')
+            console.log(`Added layer ${layerId} with source-layer ${chunkNames[i]}`)
           } catch (error) {
             console.error(`Error adding socially disadvantaged layer ${layerId}:`, error)
           }
