@@ -564,6 +564,93 @@ export default function Map() {
           }
         }, 'states-layer')
 
+        // Add this after your hover effects code
+        const popup = new mapboxgl.Popup({
+          closeButton: true,
+          closeOnClick: true,
+          maxWidth: '300px'
+        })
+
+        // Add click handlers for reservations
+        map.current.on('click', 'reservations-layer', (e) => {
+          const coordinates = e.lngLat
+          const properties = e.features[0].properties
+
+          // Format the popup content
+          const content = `
+            <div style="padding: 8px;">
+              <h3 style="margin: 0 0 8px 0;">Tribal Nation</h3>
+              <p style="margin: 0 0 5px 0;"><strong>Name:</strong> ${properties.NAME}</p>
+              <p style="margin: 0 0 5px 0;"><strong>Latitude:</strong> ${properties.INTPTLAT}</p>
+              <p style="margin: 0;"><strong>Longitude:</strong> ${properties.INTPTLON}</p>
+            </div>
+          `
+          console.log(properties)
+
+          popup
+            .setLngLat(coordinates)
+            .setHTML(content)
+            .addTo(map.current)
+        })
+
+        // Add click handlers for distressed areas
+        map.current.on('click', 'distressed-layer', (e) => {
+          const coordinates = e.lngLat
+          const properties = e.features[0].properties
+
+          // Format the popup content
+          const content = `
+            <div style="padding: 8px;">
+              <h3 style="margin: 0 0 8px 0;">Distressed Area</h3>
+              <p style="margin: 0 0 5px 0;"><strong>County:</strong> ${properties.NAME}</p>
+              <p style="margin: 0 0 5px 0;"><strong>State:</strong> ${properties.STATE}</p>
+              ${properties.POVERTY_RATE ? `
+                <p style="margin: 0 0 5px 0;"><strong>Poverty Rate:</strong> ${(properties.POVERTY_RATE * 100).toFixed(1)}%</p>
+              ` : ''}
+              ${properties.UNEMPLOYMENT ? `
+                <p style="margin: 0;"><strong>Unemployment Rate:</strong> ${(properties.UNEMPLOYMENT * 100).toFixed(1)}%</p>
+              ` : ''}
+            </div>
+          `
+
+          popup
+            .setLngLat(coordinates)
+            .setHTML(content)
+            .addTo(map.current)
+        })
+
+        // Optional: Add click handler for EPA disadvantaged areas
+        map.current.on('click', 'epa-disadvantaged-layer-1', (e) => {
+          const coordinates = e.lngLat
+          const properties = e.features[0].properties
+
+          // Format the popup content
+          const content = `
+            <div style="padding: 8px;">
+              <h3 style="margin: 0 0 8px 0;">EPA Disadvantaged Community</h3>
+              <p style="margin: 0 0 5px 0;"><strong>Census Tract:</strong> ${properties.GEOID10}</p>
+              <p style="margin: 0 0 5px 0;"><strong>State:</strong> ${properties.STATE}</p>
+              <p style="margin: 0;">This area has been identified by the EPA as disadvantaged based on environmental and socioeconomic factors.</p>
+            </div>
+          `
+
+          popup
+            .setLngLat(coordinates)
+            .setHTML(content)
+            .addTo(map.current)
+        })
+
+        // Close popup when clicking elsewhere on the map
+        map.current.on('click', (e) => {
+          const features = map.current.queryRenderedFeatures(e.point, {
+            layers: ['reservations-layer', 'distressed-layer', 'epa-disadvantaged-layer-1']
+          })
+          
+          if (!features.length) {
+            popup.remove()
+          }
+        })
+
       } catch (error) {
         console.error('Error loading data:', error)
       }
