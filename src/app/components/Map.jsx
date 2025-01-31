@@ -70,7 +70,8 @@ export default function Map() {
     regions: true,
     distressed: true,
     reservations: true,
-    epaDisadvantaged: true
+    epaDisadvantaged: true,
+    sociallyDisadvantaged: true
   })
   const [currentZoom, setCurrentZoom] = useState(3)
 
@@ -121,6 +122,22 @@ export default function Map() {
             )
           }
         })
+      } else if (layerId === 'sociallyDisadvantaged') {
+        // Toggle all socially disadvantaged layers
+        for (let i = 1; i <= 8; i++) {
+          const layerName = `socially-disadvantaged-layer-${i}`
+          try {
+            if (map.current.getLayer(layerName)) {
+              map.current.setLayoutProperty(
+                layerName,
+                'visibility',
+                visibility ? 'visible' : 'none'
+              )
+            }
+          } catch (error) {
+            console.warn(`Could not toggle socially disadvantaged layer ${layerName}:`, error)
+          }
+        }
       } else {
         const layerName = `${layerId}-layer`
         if (map.current.getLayer(layerName)) {
@@ -244,6 +261,70 @@ export default function Map() {
             console.log(`Added layer ${layerId} with source-layer ${chunkNames[i]}`)
           } catch (error) {
             console.error(`Error adding layer ${layerId}:`, error)
+          }
+        }
+
+        // Update the socially disadvantaged layers section
+        const chunkNames = {
+          1: 'chunk1-social-ckdarq',
+          2: 'chunk2-social-4ctgn8',
+          3: 'chunk3-social-646uk9',
+          4: 'chunk4-social-anksfz',
+          5: 'chunk5-social-0fctz6',
+          6: 'chunk6-social-4ctgn8',
+          7: 'chunk7-social-e46uk9',
+          8: 'chunk8-social-5e0kvm'
+        }
+
+        // Add socially disadvantaged layers
+        for (let i = 1; i <= 8; i++) {
+          const sourceId = `socially-disadvantaged-${i}`
+          const layerId = `socially-disadvantaged-layer-${i}`
+          
+          const tilesetIds = {
+            1: '87npeomp',
+            2: '3deopwhf',
+            3: 'dttfx2ad',
+            4: 'd7anenaa',
+            5: 'dwogkz4d',
+            6: '303ru0v2',
+            7: 'bmh29r6h',
+            8: '5un0jm7v'
+          }
+
+          console.log(`Adding socially disadvantaged source ${sourceId}`)
+
+          map.current.addSource(sourceId, {
+            type: 'vector',
+            url: `mapbox://sunthecoder.${tilesetIds[i]}`
+          })
+
+          try {
+            map.current.addLayer({
+              id: layerId,
+              type: 'fill',
+              source: sourceId,
+              'source-layer': chunkNames[i],
+              minzoom: 2,
+              paint: {
+                'fill-color': '#9370DB',
+                'fill-opacity': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  2, 0.2,
+                  3, 0.3,
+                  4, 0.5,
+                  8, 0.8
+                ],
+                'fill-outline-color': '#000000'
+              },
+              layout: {
+                visibility: layerVisibility.sociallyDisadvantaged ? 'visible' : 'none'
+              }
+            })
+          } catch (error) {
+            console.error(`Error adding socially disadvantaged layer ${layerId}:`, error)
           }
         }
 
@@ -634,7 +715,8 @@ export default function Map() {
           const layers = [
             'reservations-layer', 
             'distressed-layer', 
-            ...Array.from({length: 7}, (_, i) => `epa-disadvantaged-layer-${i + 1}`)
+            ...Array.from({length: 7}, (_, i) => `epa-disadvantaged-layer-${i + 1}`),
+            ...Array.from({length: 8}, (_, i) => `socially-disadvantaged-layer-${i + 1}`)
           ]
           
           const features = map.current.queryRenderedFeatures(e.point, { layers })
@@ -716,6 +798,16 @@ export default function Map() {
               onChange={() => toggleLayer('epa-disadvantaged')}
             />
             EPA Disadvantaged Communities
+          </label>
+        </div>
+        <div>
+          <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <input
+              type="checkbox"
+              checked={layerVisibility.sociallyDisadvantaged}
+              onChange={() => toggleLayer('sociallyDisadvantaged')}
+            />
+            Socially Disadvantaged Communities
           </label>
         </div>
         
