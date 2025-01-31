@@ -62,6 +62,17 @@ const fitToDistressedData = (map) => {
   })
 }
 
+// Add this function with the other zoom functions at the top
+const fitToSociallyDisadvantagedData = (map) => {
+  map.fitBounds([
+    [-125.0, 24.396308],
+    [-66.93457, 49.384358]
+  ], {
+    padding: { top: 50, bottom: 50, left: 50, right: 350 },
+    zoom: 5.1  // Set specific zoom level for socially disadvantaged data
+  })
+}
+
 export default function Map() {
   const mapContainer = useRef(null)
   const map = useRef(null)
@@ -883,6 +894,22 @@ export default function Map() {
               onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FFA07A'}
             >
               Zoom to Distressed Data
+            </button>
+            <button
+              onClick={() => map.current && fitToSociallyDisadvantagedData(map.current)}
+              style={{
+                padding: '5px 10px',
+                backgroundColor: '#9370DB',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#8A2BE2'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#9370DB'}
+            >
+              Zoom to Socially Disadvantaged
             </button>
           </div>
         </div>
