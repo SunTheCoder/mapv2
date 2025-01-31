@@ -38,54 +38,28 @@ const combineGeoJSONFeatures = (geojsonArray) => {
   }
 }
 
-// Add this function at the top level
+// Update the fitToAllEPAData function
 const fitToAllEPAData = (map) => {
-  const bounds = new mapboxgl.LngLatBounds()
-  let hasFeatures = false
+  // Default bounds for continental US
+  map.fitBounds([
+    [-125.0, 24.396308],
+    [-66.93457, 49.384358]
+  ], {
+    padding: { top: 50, bottom: 50, left: 50, right: 350 },
+    zoom: 4.1  // Set specific zoom level for EPA data
+  })
+}
 
-  // Check all EPA layers for features
-  for (let i = 1; i <= 7; i++) {
-    const sourceId = `epa-disadvantaged-${i}`
-    const features = map.querySourceFeatures(sourceId, {
-      sourceLayer: 'epa-disadvantaged'
-    })
-    
-    console.log(`Found ${features.length} features in chunk ${i}`)
-    
-    features.forEach(feature => {
-      if (feature.geometry) {
-        if (feature.geometry.type === 'Polygon') {
-          feature.geometry.coordinates[0].forEach(coord => {
-            bounds.extend(coord)
-            hasFeatures = true
-          })
-        } else if (feature.geometry.type === 'MultiPolygon') {
-          feature.geometry.coordinates.forEach(polygon => {
-            polygon[0].forEach(coord => {
-              bounds.extend(coord)
-              hasFeatures = true
-            })
-          })
-        }
-      }
-    })
-  }
-
-  if (hasFeatures) {
-    console.log('Fitting to bounds:', bounds)
-    map.fitBounds(bounds, {
-      padding: { top: 50, bottom: 50, left: 50, right: 350 },
-      maxZoom: 8
-    })
-  } else {
-    console.log('No features found to fit to')
-    map.fitBounds([
-      [-125.0, 24.396308],
-      [-66.93457, 49.384358]
-    ], {
-      padding: { top: 50, bottom: 50, left: 50, right: 350 }
-    })
-  }
+// Update the fitToDistressedData function
+const fitToDistressedData = (map) => {
+  // Default bounds for continental US
+  map.fitBounds([
+    [-125.0, 24.396308],
+    [-66.93457, 49.384358]
+  ], {
+    padding: { top: 50, bottom: 50, left: 50, right: 350 },
+    zoom: 6.1  // Set specific zoom level for distressed data
+  })
 }
 
 export default function Map() {
@@ -759,23 +733,40 @@ export default function Map() {
               </div>
             )}
           </div>
-          <button
-            onClick={() => map.current && fitToAllEPAData(map.current)}
-            style={{
-              padding: '5px 10px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-              width: '100%'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
-          >
-            Zoom to EPA Data
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <button
+              onClick={() => map.current && fitToAllEPAData(map.current)}
+              style={{
+                padding: '5px 10px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
+            >
+              Zoom to EPA Data
+            </button>
+            <button
+              onClick={() => map.current && fitToDistressedData(map.current)}
+              style={{
+                padding: '5px 10px',
+                backgroundColor: '#FFA07A',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FF8C61'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FFA07A'}
+            >
+              Zoom to Distressed Data
+            </button>
+          </div>
         </div>
       </div>
     </>
