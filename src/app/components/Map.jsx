@@ -710,6 +710,32 @@ export default function Map() {
           })
         }
 
+        // Add after the EPA click handlers
+        // Add click handlers for all socially disadvantaged layers
+        for (let i = 1; i <= 8; i++) {
+          map.current.on('click', `socially-disadvantaged-layer-${i}`, (e) => {
+            const coordinates = e.lngLat
+            const properties = e.features[0].properties
+
+            // Format the popup content
+            const content = `
+              <div style="padding: 8px; color: black;">
+                <h3 style="margin: 0 0 8px 0; color: black;">Socially Disadvantaged Community</h3>
+                <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.LOCATION}</p>
+                <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.STATE}</p>
+                <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.COUNTY}</p>
+                <p style="margin: 0; color: black;"><em>This area has been identified as socially disadvantaged based on demographic and socioeconomic factors.</em></p>
+              </div>
+            `
+            console.log('Social Layer Properties:', properties)
+
+            popup
+              .setLngLat(coordinates)
+              .setHTML(content)
+              .addTo(map.current)
+          })
+        }
+
         // Update the click-away handler to include all EPA layers
         map.current.on('click', (e) => {
           const layers = [
