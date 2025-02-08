@@ -1,36 +1,35 @@
-import { Sequelize } from 'sequelize';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import seeder from '../seeders/20240208000001-region-features.js';
+import { supabase } from '../src/lib/supabase.js';
+import regions from '../seeders/20240208000001-region-features.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const env = process.env.NODE_ENV || 'development';
-const config = JSON.parse(
-  readFileSync(join(__dirname, '..', 'config', 'config.json'))
-)[env];
-
-const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
-  {
-    host: config.host,
-    dialect: config.dialect
-  }
-);
-
-async function runSeed() {
+async function seed() {
   try {
-    await seeder.up(sequelize.getQueryInterface(), Sequelize);
-    console.log('Seeding completed successfully');
+    // First, log what we're about to insert
+    console.log('Seeding regions:', regions);
+    
+    // Insert the regions
+    for (const region of regions) {
+      const { data, error } = await supabase
+        .from('Features')
+        .upsert({
+          id: region.id,
+          layerId: region.layerId,
+          featureId: region.featureId,
+          name: region.name,
+          description: region.description,
+          metadata: region.metadata,
+          createdAt: region.createdAt,
+          updatedAt: region.updatedAt
+        })
+        .select();
+
+      if (error) throw error;
+      console.log(`Seeded region ${region.name}:`, data[0]);
+    }
+    
+    console.log('Seeding complete!');
   } catch (error) {
     console.error('Error seeding database:', error);
-  } finally {
-    await sequelize.close();
   }
 }
 
-runSeed(); 
+seed(); 

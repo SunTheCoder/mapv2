@@ -1,21 +1,34 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const layerId = searchParams.get('layerId');
+  const featureId = searchParams.get('featureId');
+  
+  console.log('API Request:', { layerId, featureId }); // Debug log
   
   try {
-    const result = await pool.query(
-      'SELECT * FROM "Features" WHERE "layerId" = $1',
-      [layerId]
-    );
-    // Parse metadata for each row
-    const data = result.rows.map(row => ({
-      ...row,
-      metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata
-    }));
-    return Response.json({ success: true, data });
+    let query = supabase
+      .from('Features')
+      .select('*')
+      .eq('layerId', layerId);
+    
+    if (featureId) {
+      query = query.eq('featureId', featureId);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    return Response.json({ 
+      success: true, 
+      data: data.map(row => ({
+        ...row,
+        metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata
+      }))
+    });
   } catch (error) {
     console.error('Database error:', error);
     return Response.json({ success: false, error: error.message });

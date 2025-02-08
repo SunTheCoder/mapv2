@@ -1,10 +1,13 @@
 {
   "development": {
-    "username": "postgres",
-    "password": "postgres",
-    "database": "cec_map_db",
-    "host": "127.0.0.1",
-    "dialect": "postgres"
+    "use_env_variable": "POSTGRES_URL_NON_POOLING",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
   },
   "test": {
     "username": "postgres",
@@ -14,19 +17,13 @@
     "dialect": "postgres"
   },
   "production": {
-    "url": "postgres://postgres:Datathug2024!@db.ostnqapfanzuuntmyogc.supabase.co:5432/postgres?host=db.ostnqapfanzuuntmyogc.supabase.co",
+    "use_env_variable": "POSTGRES_URL_NON_POOLING",
     "dialect": "postgres",
     "dialectOptions": {
       "ssl": {
         "require": true,
         "rejectUnauthorized": false
       }
-    },
-    "pool": {
-      "max": 5,
-      "min": 0,
-      "acquire": 30000,
-      "idle": 10000
     }
   }
 }
