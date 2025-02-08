@@ -7,7 +7,7 @@ const regions = [
     featureId: 'pacific-west',
     name: 'Pacific West',
     description: 'Pacific West region of the United States',
-    metadata: '{"states":["WA","OR","CA","NV","AK","HI","AS","GU","MP"],"population":"78.2M","area":"1,009,261 sq mi"}',
+    metadata: '{"states":["WA","OR","CA","NV","AK","HI","AS","GU","MP"],"population":"78.2M","area":"1,009,261 sq mi","regional_partners":["X UTILITY","Rural Community Assistance Corporation (RCAC)","Essential Leap"]}',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -17,7 +17,7 @@ const regions = [
     featureId: 'west-central',
     name: 'West Central',
     description: 'West Central region of the United States',
-    metadata: '{"states":["MT","ID","WY","UT","CO","AZ","NM","ND","SD","NE","KS","IA","MN","MO"],"population":"45.3M","area":"929,479 sq mi"}',
+    metadata: '{"states":["MT","ID","WY","UT","CO","AZ","NM","ND","SD","NE","KS","IA","MN","MO"],"population":"45.3M","area":"929,479 sq mi","regional_partners":["Great Plains Institute (GPI)","Midwest Assistance Program (MAP)","KERAMIDA"]}',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -27,7 +27,7 @@ const regions = [
     featureId: 'south-central',
     name: 'South Central',
     description: 'South Central region of the United States',
-    metadata: '{"states":["TX","OK","AR","LA","MS","AL"],"population":"51.8M","area":"503,926 sq mi"}',
+    metadata: '{"states":["TX","OK","AR","LA","MS","AL"],"population":"51.8M","area":"503,926 sq mi","regional_partners":["Southern Arkansas University (SAU)","Communities Unlimited (CU)","Southwest Research Institute (SwRI)"]}',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -37,7 +37,7 @@ const regions = [
     featureId: 'east-central',
     name: 'East Central',
     description: 'East Central region of the United States',
-    metadata: '{"states":["WI","MI","IL","IN","OH","KY","TN","WV"],"population":"65.7M","area":"378,234 sq mi"}',
+    metadata: '{"states":["WI","MI","IL","IN","OH","KY","TN","WV"],"population":"65.7M","area":"378,234 sq mi","regional_partners":["Midwest Energy Efficiency Alliance (MEEA)","Great Lakes Community Action Partnership (GLCAP)","Donovan Energy"]}',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -47,7 +47,7 @@ const regions = [
     featureId: 'southeast',
     name: 'Southeast',
     description: 'Southeast region of the United States',
-    metadata: '{"states":["NC","SC","GA","FL","PR","VI","VA"],"population":"57.9M","area":"292,773 sq mi"}',
+    metadata: '{"states":["NC","SC","GA","FL","PR","VI","VA"],"population":"57.9M","area":"292,773 sq mi","regional_partners":["Interstate Renewable Energy Council (IREC)","Southeast Rural Community Assistance Partnership (SERCAP)","Miami Institute for Clean Energy"]}',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -57,7 +57,7 @@ const regions = [
     featureId: 'northeast',
     name: 'Northeast',
     description: 'Northeast region of the United States',
-    metadata: '{"states":["ME","NH","VT","MA","RI","CT","NY","PA","NJ","DE","MD","DC"],"population":"65.5M","area":"181,324 sq mi"}',
+    metadata: '{"states":["ME","NH","VT","MA","RI","CT","NY","PA","NJ","DE","MD","DC"],"population":"65.5M","area":"181,324 sq mi","regional_partners":["esal LLC","RCAP Solutions (RSOL)","Claen Energy NH"]}',
     createdAt: new Date(),
     updatedAt: new Date()
   }

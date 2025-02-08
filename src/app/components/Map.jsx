@@ -183,6 +183,7 @@ export default function Map() {
           <p style="margin: 0 0 5px 0; color: black;"><strong>Population:</strong> ${metadata.population}</p>
           <p style="margin: 0 0 5px 0; color: black;"><strong>Area:</strong> ${metadata.area}</p>
           <p style="margin: 0 0 5px 0; color: black;"><strong>States:</strong> ${metadata.states.join(', ')}</p>
+          <p style="margin: 0 0 5px 0; color: black;"><strong>Regional Partners:</strong> ${metadata.regional_partners.join(', ')}</p>
         </div>
       </div>
     `;
