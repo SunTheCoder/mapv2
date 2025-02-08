@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run migrate && next build",
     "start": "next start",
     "lint": "next lint",
     "process-tiles": "node scripts/process-epa-tiles.js",
     "seed": "node scripts/seed.js",
-    "migrate": "node scripts/migrate.js",
+    "migrate": "sequelize-cli db:migrate",
     "verify": "node scripts/verify.js",
     "db:seed": "node --experimental-json-modules ./node_modules/.bin/sequelize-cli db:seed --seed 20240208000001-region-features.js"
   },
