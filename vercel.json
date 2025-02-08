@@ -1,0 +1,13 @@
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "POSTGRES_HOST": "db.ostnqapfanzuuntmyogc.supabase.co",
+    "POSTGRES_PORT": "5432",
+    "POSTGRES_SSL": "true"
+  }
+} 

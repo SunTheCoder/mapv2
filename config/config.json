@@ -14,13 +14,19 @@
     "dialect": "postgres"
   },
   "production": {
-    "url": "postgresql://postgres:Datathug2024!@db.ostnqapfanzuuntmyogc.supabase.co:5432/postgres",
+    "url": "postgres://postgres:Datathug2024!@db.ostnqapfanzuuntmyogc.supabase.co:5432/postgres?host=db.ostnqapfanzuuntmyogc.supabase.co",
     "dialect": "postgres",
     "dialectOptions": {
       "ssl": {
         "require": true,
         "rejectUnauthorized": false
       }
+    },
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
     }
   }
 }
