@@ -76,6 +76,12 @@ const fitToSociallyDisadvantagedData = (map) => {
 export default function Map() {
   const mapContainer = useRef(null)
   const map = useRef(null)
+  const [popup] = useState(
+    new mapboxgl.Popup({
+      closeButton: true,
+      closeOnClick: false
+    })
+  )
   const [layerVisibility, setLayerVisibility] = useState({
     states: true,
     regions: true,
@@ -85,6 +91,8 @@ export default function Map() {
     sociallyDisadvantaged: true
   })
   const [currentZoom, setCurrentZoom] = useState(3)
+  const [features, setFeatures] = useState([]);
+  const [regionFeatures, setRegionFeatures] = useState(null);
 
   const toggleLayer = (layerId) => {
     const visibility = !layerVisibility[layerId]
@@ -164,8 +172,24 @@ export default function Map() {
     }
   }
 
+  // Add this function to format region data for the popup
+  const formatRegionPopup = (feature) => {
+    const { name, description, metadata } = feature;
+    return `
+      <div style="padding: 8px; color: black;">
+        <h3 style="margin: 0 0 8px 0; color: black;">${name}</h3>
+        <p style="margin: 0 0 5px 0; color: black;">${description}</p>
+        <div style="margin: 8px 0;">
+          <p style="margin: 0 0 5px 0; color: black;"><strong>Population:</strong> ${metadata.population}</p>
+          <p style="margin: 0 0 5px 0; color: black;"><strong>Area:</strong> ${metadata.area}</p>
+          <p style="margin: 0 0 5px 0; color: black;"><strong>States:</strong> ${metadata.states.join(', ')}</p>
+        </div>
+      </div>
+    `;
+  };
+
   useEffect(() => {
-    if (map.current) return
+    if (map.current) return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -173,10 +197,10 @@ export default function Map() {
       center: [-98.5795, 39.8283],
       zoom: 3,
       accessToken: MAPBOX_TOKEN
-    })
+    });
 
-    let loadedLayers = 0
-    const totalLayers = 7 // Number of EPA layers
+    let loadedLayers = 0;
+    const totalLayers = 7; // Number of EPA layers
 
     map.current.on('load', async () => {
       try {
@@ -763,13 +787,52 @@ export default function Map() {
           }
         })
 
-      } catch (error) {
-        console.error('Error loading data:', error)
-      }
-    })
+        // Fetch region features from our database
+        const response = await fetch('/api/features?layerId=region');
+        const { data } = await response.json();
+        setRegionFeatures(data);
 
-    return () => map.current?.remove()
-  }, [])
+        // Add click handler for regions
+        Object.keys(REGION_STATES).forEach(region => {
+          const regionId = `region-${region.toLowerCase().replace(/\s+/g, '-')}`;
+          
+          map.current.on('click', regionId, (e) => {
+            const coordinates = e.lngLat;
+            // Use the exact region name format from REGION_STATES
+            const clickedRegion = region.toLowerCase().replace(/\s+/g, '-');
+            
+            // Find matching feature from our database
+            const dbFeature = data.find(f => 
+              f.featureId === clickedRegion
+            );
+
+            if (dbFeature) {
+              const content = formatRegionPopup(dbFeature);
+              popup
+                .setLngLat(coordinates)
+                .setHTML(content)
+                .addTo(map.current);
+            }
+          });
+
+          // Add hover effects
+          map.current.on('mouseenter', regionId, () => {
+            map.current.getCanvas().style.cursor = 'pointer';
+          });
+
+          map.current.on('mouseleave', regionId, () => {
+            map.current.getCanvas().style.cursor = '';
+          });
+        });
+
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    });
+
+    // Cleanup function
+    return () => map.current?.remove();
+  }, []);
 
   return (
     <>
