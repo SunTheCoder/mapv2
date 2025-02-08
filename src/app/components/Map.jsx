@@ -107,7 +107,7 @@ export default function Map() {
             console.warn(`Could not toggle region layer ${regionId}:`, error)
           }
         })
-      } else if (layerId === 'epa-disadvantaged') {
+      } else if (layerId === 'epaDisadvantaged') {
         // Toggle all EPA layers
         for (let i = 1; i <= 7; i++) {
           const layerName = `epa-disadvantaged-layer-${i}`
@@ -832,7 +832,7 @@ export default function Map() {
             <input
               type="checkbox"
               checked={layerVisibility.epaDisadvantaged}
-              onChange={() => toggleLayer('epa-disadvantaged')}
+              onChange={() => toggleLayer('epaDisadvantaged')}
             />
             EPA Disadvantaged Communities
           </label>
