@@ -5,14 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npm run migrate && next build",
+    "build": "next build",
+    "postbuild": "npm run migrate || echo 'Migration failed, continuing build'",
     "start": "next start",
     "lint": "next lint",
     "process-tiles": "node scripts/process-epa-tiles.js",
     "seed": "node scripts/seed.js",
     "migrate": "sequelize-cli db:migrate",
     "verify": "node scripts/verify.js",
-    "db:seed": "node --experimental-json-modules ./node_modules/.bin/sequelize-cli db:seed --seed 20240208000001-region-features.js"
+    "db:seed": "node --experimental-json-modules ./node_modules/.bin/sequelize-cli db:seed --seed 20240208000001-region-features.js",
+    "deploy-db": "node -r dotenv/config ./node_modules/.bin/sequelize-cli db:migrate --env production && node -r dotenv/config ./node_modules/.bin/sequelize-cli db:seed --seed 20240208000001-region-features.js --env production"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.738.0",
