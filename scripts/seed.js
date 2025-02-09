@@ -11,14 +11,13 @@ async function seed() {
       const { data, error } = await supabase
         .from('Features')
         .upsert({
-          id: region.id,
           layerId: region.layerId,
           featureId: region.featureId,
           name: region.name,
           description: region.description,
           metadata: region.metadata,
-          createdAt: region.createdAt,
-          updatedAt: region.updatedAt
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         })
         .select();
 

@@ -36,35 +36,28 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const client = await pool.connect();
   try {
     const { layerId, featureId, name, description, properties } = await request.json();
 
-    const query = `
-      INSERT INTO "Features" ("id", "layerId", "featureId", "name", "description", "metadata", "createdAt", "updatedAt")
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW())
-      ON CONFLICT ("layerId", "featureId") 
-      DO UPDATE SET 
-        "name" = $3,
-        "description" = $4,
-        "metadata" = $5,
-        "updatedAt" = NOW()
-      RETURNING *
-    `;
+    const { data, error } = await supabase
+      .from('Features')
+      .upsert({
+        layerId,
+        featureId,
+        name,
+        description,
+        metadata: JSON.stringify(properties),
+        updatedAt: new Date().toISOString()
+      })
+      .select();
 
-    const { rows } = await client.query(query, [
-      layerId, 
-      featureId, 
-      name, 
-      description, 
-      JSON.stringify(properties)
-    ]);
+    if (error) throw error;
 
     return NextResponse.json({
       success: true,
       data: {
-        ...rows[0],
-        metadata: JSON.parse(rows[0].metadata)
+        ...data[0],
+        metadata: typeof data[0].metadata === 'string' ? JSON.parse(data[0].metadata) : data[0].metadata
       }
     });
   } catch (error) {
@@ -77,7 +70,5 @@ export async function POST(request) {
       }, 
       { status: 500 }
     );
-  } finally {
-    client.release();
   }
 } 

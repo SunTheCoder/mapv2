@@ -90,6 +90,24 @@ const formatRegionPopup = (feature) => {
   `;
 };
 
+// Add this formatter next to your region formatter
+const formatStatePopup = (feature) => {
+  const { name, description, metadata } = feature;
+  return `
+    <div style="padding: 8px; color: black;">
+      <h3 style="margin: 0 0 8px 0; color: black;">${name}</h3>
+      <p style="margin: 0 0 5px 0; color: black;">${description}</p>
+      <div style="margin: 8px 0;">
+        ${Object.entries(metadata).map(([key, value]) => `
+          <p style="margin: 0 0 5px 0; color: black;">
+            <strong>${key.replace(/_/g, ' ')}:</strong> ${Array.isArray(value) ? value.join(', ') : value}
+          </p>
+        `).join('')}
+      </div>
+    </div>
+  `;
+};
+
 export default function Map() {
   const mapContainer = useRef(null)
   const map = useRef(null)
@@ -227,11 +245,11 @@ export default function Map() {
         // Add states layer FIRST
         map.current.addLayer({
           id: 'states-layer',
-          type: 'line',
+          type: 'fill',
           source: 'states',
           paint: {
-            'line-color': '#627BC1',
-            'line-width': 1
+            'fill-color': 'transparent',
+            'fill-outline-color': '#627BC1'
           },
           layout: {
             visibility: layerVisibility.states ? 'visible' : 'none'
@@ -835,6 +853,49 @@ export default function Map() {
           map.current.on('mouseleave', regionId, () => {
             map.current.getCanvas().style.cursor = '';
           });
+        });
+
+        // Add this click handler in your useEffect where map loads
+        map.current.on('click', 'states-layer', async (e) => {
+          if (e.features.length > 0) {
+            const feature = e.features[0];
+            console.log('State properties:', feature.properties);
+            
+            const coordinates = e.lngLat;
+            const stateId = feature.properties.basename?.toLowerCase();
+
+            console.log('Found stateId:', stateId);
+
+            if (!stateId) {
+              console.error('Could not find state name in:', feature.properties);
+              return;
+            }
+
+            try {
+              const response = await fetch(`/api/features?layerId=state&featureId=${stateId}`);
+              const { success, data, error } = await response.json();
+              console.log('API Response:', { success, data, error });
+              
+              if (success && data && data.length > 0) {
+                const content = formatStatePopup(data[0]);
+                popup
+                  .setLngLat(coordinates)
+                  .setHTML(content)
+                  .addTo(map.current);
+              }
+            } catch (error) {
+              console.error('Error fetching state data:', error);
+            }
+          }
+        });
+
+        // Add hover state
+        map.current.on('mouseenter', 'states-layer', () => {
+          map.current.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.current.on('mouseleave', 'states-layer', () => {
+          map.current.getCanvas().style.cursor = '';
         });
 
       } catch (error) {
