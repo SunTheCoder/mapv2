@@ -703,91 +703,176 @@ export default function Map() {
         })
 
         // Add click handlers for distressed areas
-        map.current.on('click', 'distressed-layer', (e) => {
-          const coordinates = e.lngLat
-          const properties = e.features[0].properties
+        map.current.on('click', 'distressed-layer', async (e) => {
+          if (e.features.length > 0) {
+            const coordinates = e.lngLat;
+            const properties = e.features[0].properties;
+            
+            // Format county-state ID to match database format (e.g., "bennett-southdakota")
+            const countyName = properties.County?.toLowerCase()
+              .replace(/\s+county/i, '') // Remove 'County' if present
+              .replace(/\s+/g, '-');
+            const stateName = properties.State?.toLowerCase()
+              .replace(/\s+/g, ''); // Remove all spaces without adding hyphens
+            const countyStateId = `${countyName}-${stateName}`;
 
-          // Format the popup content
-          const content = `
-            <div style="padding: 8px; color: black;">
-              <h3 style="margin: 0 0 8px 0; color: black;">Distressed Area</h3>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.CBSA}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>City:</strong> ${properties.City}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.State}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.County}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Zipcode:</strong> ${properties.Zipcode}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>GeoID:</strong> ${properties.GEOID10}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Quintile:</strong> ${properties.Quintile__}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Total Population:</strong> ${properties.Total_Popu}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Census Region:</strong> ${properties.Census_Reg}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Urban or Rural:</strong> ${properties.Urban_Rura}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Distress Score:</strong> ${properties.DistressSc}</p>
+            console.log('Fetching county data for:', countyStateId); // Debug log
 
-              ${properties.Poverty_Ra ? 
-                `<p style="margin: 0 0 5px 0; color: black;"><strong>Poverty Rate:</strong> ${properties.Poverty_Ra}</p>` 
-                : ''}
-              ${properties.UNEMPLOYMENT ? 
-                `<p style="margin: 0; color: black;"><strong>Unemployment Rate:</strong> ${(properties.UNEMPLOYMENT * 100).toFixed(1)}%</p>` 
-                : ''}
-            </div>
-          `
-          console.log(properties)
+            try {
+              const response = await fetch(`/api/features?layerId=county&featureId=${countyStateId}`);
+              const { success, data } = await response.json();
+              console.log('Supabase response:', { success, data }); // Debug log
+              
+              // Combine distressed data with Supabase data if available
+              const content = `
+                <div style="padding: 8px; color: black;">
+                  <h3 style="margin: 0 0 8px 0; color: black;">${properties.County}, ${properties.State}</h3>
+                  
+                  <!-- Distressed Data -->
+                  <div style="margin: 8px 0;">
+                    <p style="margin: 0 0 5px 0; color: black;"><strong>Distress Score:</strong> ${properties.DistressSc}</p>
+                    <p style="margin: 0 0 5px 0; color: black;"><strong>Population:</strong> ${properties.Total_Popu}</p>
+                    <p style="margin: 0 0 5px 0; color: black;"><strong>Urban/Rural:</strong> ${properties.Urban_Rura}</p>
+                    ${properties.Poverty_Ra ? 
+                      `<p style="margin: 0 0 5px 0; color: black;"><strong>Poverty Rate:</strong> ${properties.Poverty_Ra}</p>` 
+                      : ''}
+                    ${properties.UNEMPLOYMENT ? 
+                      `<p style="margin: 0 0 5px 0; color: black;"><strong>Unemployment:</strong> ${(properties.UNEMPLOYMENT * 100).toFixed(1)}%</p>` 
+                      : ''}
+                  </div>
 
-          popup
-            .setLngLat(coordinates)
-            .setHTML(content)
-            .addTo(map.current)
+                  ${success && data && data.length > 0 ? `
+                    <!-- Supabase County Data -->
+                    <div style="margin: 8px 0; border-top: 1px solid #ccc; padding-top: 8px;">
+                      <p style="margin: 0 0 5px 0; color: black;">${data[0].description}</p>
+                      ${Object.entries(data[0].metadata).map(([key, value]) => `
+                        <p style="margin: 0 0 5px 0; color: black;">
+                          <strong>${key.replace(/_/g, ' ')}:</strong> ${Array.isArray(value) ? value.join(', ') : value}
+                        </p>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+
+              popup
+                .setLngLat(coordinates)
+                .setHTML(content)
+                .addTo(map.current);
+            } catch (error) {
+              console.error('Error fetching county data:', error);
+            }
+          }
         })
 
         // Add click handlers for all EPA layers
         for (let i = 1; i <= 7; i++) {
-          map.current.on('click', `epa-disadvantaged-layer-${i}`, (e) => {
-            const coordinates = e.lngLat
-            const properties = e.features[0].properties
+          const layerId = `epa-disadvantaged-layer-${i}`;
+          map.current.on('click', layerId, async (e) => {
+            const coordinates = e.lngLat;
+            const properties = e.features[0].properties;
+            const countyName = properties.COUNTY?.toLowerCase();
+            const stateName = properties.STATE?.toLowerCase();
 
-            // Format the popup content
-            const content = `
-              <div style="padding: 8px; color: black;">
-                <h3 style="margin: 0 0 8px 0; color: black;">EPA Disadvantaged Community</h3>
-                <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.GEOID10}</p>
-                <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.SF}</p>
-                <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.CF}</p>
-               
-                <p style="margin: 0; color: black;"><em>This area has been identified by the EPA as disadvantaged based on environmental and socioeconomic factors.</em></p>
-              </div>
-            `
-            console.log(properties)
-            popup
-              .setLngLat(coordinates)
-              .setHTML(content)
-              .addTo(map.current)
-          })
+            try {
+              // Fetch county data from Supabase if it exists
+              const response = await fetch(`/api/features?layerId=county&featureId=${countyName}-${stateName}`);
+              const { success, data } = await response.json();
+              
+              // Combine EPA data with Supabase data if available
+              const content = `
+                <div style="padding: 8px; color: black;">
+                  <h3 style="margin: 0 0 8px 0; color: black;">${properties.COUNTY}, ${properties.STATE}</h3>
+                  
+                  <!-- EPA Data -->
+                  <div style="margin: 8px 0;">
+                    <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.LOCATION}</p>
+                    <p style="margin: 0 0 5px 0; color: black;"><strong>EPA Score:</strong> ${properties.SCORE || 'N/A'}</p>
+                  </div>
+
+                  ${success && data && data.length > 0 ? `
+                    <!-- Supabase County Data -->
+                    <div style="margin: 8px 0; border-top: 1px solid #ccc; padding-top: 8px;">
+                      <p style="margin: 0 0 5px 0; color: black;">${data[0].description}</p>
+                      ${Object.entries(data[0].metadata).map(([key, value]) => `
+                        <p style="margin: 0 0 5px 0; color: black;">
+                          <strong>${key.replace(/_/g, ' ')}:</strong> ${Array.isArray(value) ? value.join(', ') : value}
+                        </p>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+
+              popup
+                .setLngLat(coordinates)
+                .setHTML(content)
+                .addTo(map.current);
+            } catch (error) {
+              console.error('Error fetching county data:', error);
+            }
+          });
         }
 
         // Add after the EPA click handlers
         // Add click handlers for all socially disadvantaged layers
         for (let i = 1; i <= 8; i++) {
-          map.current.on('click', `socially-disadvantaged-layer-${i}`, (e) => {
-            const coordinates = e.lngLat
-            const properties = e.features[0].properties
+          map.current.on('click', `socially-disadvantaged-layer-${i}`, async (e) => {
+            if (e.features.length > 0) {
+              const coordinates = e.lngLat;
+              const properties = e.features[0].properties;
+              
+              // Format county-state ID to match database format
+              const countyName = properties.COUNTY?.toLowerCase()
+                .replace(/\s+county/i, '')
+                .replace(/\s+/g, '-');
+              const stateName = properties.STATE?.toLowerCase()
+                .replace(/\s+/g, '');
+              const countyStateId = `${countyName}-${stateName}`;
 
-            // Format the popup content
-            const content = `
-              <div style="padding: 8px; color: black;">
-                <h3 style="margin: 0 0 8px 0; color: black;">Socially Disadvantaged Community</h3>
-                <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.LOCATION}</p>
-                <p style="margin: 0 0 5px 0; color: black;"><strong>State:</strong> ${properties.STATE}</p>
-                <p style="margin: 0 0 5px 0; color: black;"><strong>County:</strong> ${properties.COUNTY}</p>
-                <p style="margin: 0; color: black;"><em>This area has been identified as socially disadvantaged based on demographic and socioeconomic factors.</em></p>
-              </div>
-            `
-            console.log('Social Layer Properties:', properties)
+              console.log('Fetching county data for:', countyStateId);
 
-            popup
-              .setLngLat(coordinates)
-              .setHTML(content)
-              .addTo(map.current)
-          })
+              try {
+                const response = await fetch(`/api/features?layerId=county&featureId=${countyStateId}`);
+                const { success, data } = await response.json();
+                console.log('Supabase response:', { success, data });
+
+                const content = `
+                  <div style="padding: 8px; color: black;">
+                    <h3 style="margin: 0 0 8px 0; color: black;">${properties.COUNTY}, ${properties.STATE}</h3>
+                    
+                    <!-- Socially Disadvantaged Data -->
+                    <div style="margin: 8px 0;">
+                      <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.LOCATION}</p>
+                      <p style="margin: 0 0 5px 0; color: black;"><strong>Socially Disadvantaged Status:</strong> Yes</p>
+                      ${properties.SCORE ? 
+                        `<p style="margin: 0 0 5px 0; color: black;"><strong>Score:</strong> ${properties.SCORE}</p>` 
+                        : ''}
+                    </div>
+
+                    ${success && data && data.length > 0 ? `
+                      <!-- Supabase County Data -->
+                      <div style="margin: 8px 0; border-top: 1px solid #ccc; padding-top: 8px;">
+                        <p style="margin: 0 0 5px 0; color: black;">${data[0].description}</p>
+                        ${Object.entries(data[0].metadata).map(([key, value]) => `
+                          <p style="margin: 0 0 5px 0; color: black;">
+                            <strong>${key.replace(/_/g, ' ')}:</strong> ${Array.isArray(value) ? value.join(', ') : value}
+                          </p>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+
+                popup
+                  .setLngLat(coordinates)
+                  .setHTML(content)
+                  .addTo(map.current);
+              } catch (error) {
+                console.error('Error fetching county data:', error);
+              }
+            }
+          });
         }
 
         // Update the click-away handler to include all EPA layers
