@@ -156,7 +156,27 @@ const SearchBox = ({ map }) => {
         break;
         
       case 'state':
-        // Use the state's name to find it in the source data, not just rendered features
+        // Special handling for Pacific territories
+        if (result.name === 'Guam' || result.name === 'Commonwealth of the Northern Mariana Islands') {
+          // Zoom directly to their coordinates
+          if (result.name === 'Guam') {
+            map.current.flyTo({
+              center: [144.7937, 13.4443], // Guam coordinates
+              zoom: 8,
+              padding: { top: 50, bottom: 50, left: 50, right: 50 }
+            });
+            return;
+          } else {
+            map.current.flyTo({
+              center: [145.6739, 15.0979], // Northern Mariana Islands coordinates
+              zoom: 7,
+              padding: { top: 50, bottom: 50, left: 50, right: 50 }
+            });
+            return;
+          }
+        }
+
+        // Regular state handling continues...
         const stateFeatures = map.current.querySourceFeatures('states', {
           filter: ['==', ['get', 'name'], result.name]
         });
