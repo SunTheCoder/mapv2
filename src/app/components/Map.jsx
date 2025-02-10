@@ -384,12 +384,13 @@ export default function Map() {
     })
   )
   const [layerVisibility, setLayerVisibility] = useState({
-    states: true,
-    regions: true,
+    epa: false,  // Set EPA to false by default
+    epaDisadvantaged: false,  // Set EPA disadvantaged to false by default
     distressed: true,
+    sociallyDisadvantaged: true,
     reservations: true,
-    epaDisadvantaged: true,
-    sociallyDisadvantaged: true
+    states: true,
+    regions: true
   })
   const [currentZoom, setCurrentZoom] = useState(3)
   const [features, setFeatures] = useState([]);
@@ -575,7 +576,7 @@ export default function Map() {
                 'fill-outline-color': '#000000'
               },
               layout: {
-                visibility: layerVisibility.epaDisadvantaged ? 'visible' : 'none'
+                visibility: 'none'  // Set to none by default
               }
             })
             console.log(`Added layer ${layerId} with source-layer ${chunkNames[i]}`)
@@ -583,6 +584,21 @@ export default function Map() {
             console.error(`Error adding layer ${layerId}:`, error)
           }
         }
+
+        // Hide EPA layers by default
+        for (let i = 1; i <= 7; i++) {
+          map.current.setLayoutProperty(
+            `epa-disadvantaged-layer-${i}`,
+            'visibility',
+            'none'
+          );
+        }
+
+        // Update the visibility state
+        setLayerVisibility(prev => ({
+          ...prev,
+          epa: false
+        }));
 
         // Update the socially disadvantaged layers section
         for (let i = 1; i <= 8; i++) {
