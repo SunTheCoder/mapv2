@@ -73,6 +73,17 @@ const fitToSociallyDisadvantagedData = (map) => {
   })
 }
 
+// Update the resetToMainUSView function to include Alaska
+const resetToMainUSView = (map) => {
+  map.flyTo({
+    center: [-135, 55], // Center point that shows both Alaska and continental US
+    zoom: 2.5, // Zoom level that shows all US territories
+    padding: { top: 50, bottom: 50, left: 50, right: 50 },
+    duration: 1500,
+    essential: true
+  });
+};
+
 // Add this function to format region data from Supabase
 const formatRegionPopup = (feature) => {
   const { name, description, metadata } = feature;
@@ -168,19 +179,26 @@ const SearchBox = ({ map, setLayerVisibility }) => {
         break;
     }
 
-    // Wait a brief moment for layer visibility to update
+    // Always reset view first, then zoom to selection
+    resetToMainUSView(map.current);
+
+    // Wait for reset animation to complete before zooming to selection
     setTimeout(() => {
-      // Then proceed with existing zoom/search logic
       switch (result.layerId) {
         case 'region':
           if (result.metadata?.bounds) {
-            map.current.fitBounds([
-              [result.metadata.bounds.west, result.metadata.bounds.south],
-              [result.metadata.bounds.east, result.metadata.bounds.north]
-            ], { padding: 50 });
+            map.current.flyTo({
+              center: [
+                (result.metadata.bounds.west + result.metadata.bounds.east) / 2,
+                (result.metadata.bounds.south + result.metadata.bounds.north) / 2
+              ],
+              zoom: 4,
+              duration: 2000,
+              essential: true
+            });
           }
           break;
-          
+
         case 'state':
           // Special handling for Pacific territories
           if (result.name === 'Guam' || result.name === 'Commonwealth of the Northern Mariana Islands') {
@@ -208,21 +226,32 @@ const SearchBox = ({ map, setLayerVisibility }) => {
           });
 
           if (stateFeatures.length > 0) {
+            // Calculate the center of the state
             const bounds = new mapboxgl.LngLatBounds();
             stateFeatures[0].geometry.coordinates[0].forEach(coord => {
               bounds.extend(coord);
             });
-            map.current.fitBounds(bounds, { 
-              padding: { top: 50, bottom: 50, left: 50, right: 50 }
+            
+            // Use flyTo instead of fitBounds
+            const center = [
+              (bounds.getWest() + bounds.getEast()) / 2,
+              (bounds.getNorth() + bounds.getSouth()) / 2
+            ];
+            
+            map.current.flyTo({
+              center: center,
+              zoom: 5.5, // Adjust this value to get the right zoom level for states
+              padding: { top: 50, bottom: 50, left: 50, right: 50 },
+              duration: 2000,
+              essential: true
             });
           } else {
-            // If not found, zoom out first
-            map.current.fitBounds([
-              [-125.0, 24.396308],
-              [-66.93457, 49.384358]
-            ], { 
-              padding: { top: 50, bottom: 50, left: 50, right: 50 },
-              duration: 0
+            // If not found, try zooming out first
+            map.current.flyTo({
+              center: [-95.7129, 37.0902], // Center of US
+              zoom: 3.5,
+              duration: 1000,
+              essential: true
             });
 
             // After zooming out, try to find the feature again
@@ -236,14 +265,24 @@ const SearchBox = ({ map, setLayerVisibility }) => {
                 features[0].geometry.coordinates[0].forEach(coord => {
                   bounds.extend(coord);
                 });
-                map.current.fitBounds(bounds, { 
-                  padding: { top: 50, bottom: 50, left: 50, right: 50 }
+                
+                const center = [
+                  (bounds.getWest() + bounds.getEast()) / 2,
+                  (bounds.getNorth() + bounds.getSouth()) / 2
+                ];
+                
+                map.current.flyTo({
+                  center: center,
+                  zoom: 5.5,
+                  padding: { top: 50, bottom: 50, left: 50, right: 50 },
+                  duration: 2000,
+                  essential: true
                 });
               }
-            }, 100);
+            }, 1000);
           }
           break;
-          
+        
         case 'county':
           console.log('County search result:', result);
           
@@ -304,7 +343,7 @@ const SearchBox = ({ map, setLayerVisibility }) => {
             }
           }, 1000); // Give it more time to render
           break;
-          
+        
         case 'tribal-nation':
           // Get the feature directly from the reservations source
           const tribalFeatures = map.current.querySourceFeatures('reservations', {
@@ -330,7 +369,7 @@ const SearchBox = ({ map, setLayerVisibility }) => {
           }
           break;
       }
-    }, 100); // Brief delay to ensure layer is visible
+    }, 1500); // Match the duration of the reset animation
 
     setSearchTerm('');
     setSearchResults([]);
