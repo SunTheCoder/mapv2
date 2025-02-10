@@ -156,17 +156,45 @@ const SearchBox = ({ map }) => {
         break;
         
       case 'state':
-        // Use the state's name to find it in the rendered features
-        const stateFeatures = map.current.queryRenderedFeatures({
-          layers: ['states-layer'],
-          filter: ['==', ['get', 'basename'], result.name]
+        // Use the state's name to find it in the source data, not just rendered features
+        const stateFeatures = map.current.querySourceFeatures('states', {
+          filter: ['==', ['get', 'name'], result.name]
         });
+
         if (stateFeatures.length > 0) {
           const bounds = new mapboxgl.LngLatBounds();
           stateFeatures[0].geometry.coordinates[0].forEach(coord => {
             bounds.extend(coord);
           });
-          map.current.fitBounds(bounds, { padding: 50 });
+          map.current.fitBounds(bounds, { 
+            padding: { top: 50, bottom: 50, left: 50, right: 50 }
+          });
+        } else {
+          // If not found, zoom out first
+          map.current.fitBounds([
+            [-125.0, 24.396308],
+            [-66.93457, 49.384358]
+          ], { 
+            padding: { top: 50, bottom: 50, left: 50, right: 50 },
+            duration: 0
+          });
+
+          // After zooming out, try to find the feature again
+          setTimeout(() => {
+            const features = map.current.querySourceFeatures('states', {
+              filter: ['==', ['get', 'name'], result.name]
+            });
+
+            if (features.length > 0) {
+              const bounds = new mapboxgl.LngLatBounds();
+              features[0].geometry.coordinates[0].forEach(coord => {
+                bounds.extend(coord);
+              });
+              map.current.fitBounds(bounds, { 
+                padding: { top: 50, bottom: 50, left: 50, right: 50 }
+              });
+            }
+          }, 100);
         }
         break;
         
@@ -888,8 +916,7 @@ export default function Map() {
                       </p>
                     `).join('')}
                   </div>
-                ` : `
-                  <!-- Fallback to basic info if no Supabase data -->
+                ` : `                  <!-- Fallback to basic info if no Supabase data -->
                   <p style="margin: 0 0 5px 0; color: black;"><strong>Location:</strong> ${properties.INTPTLAT}, ${properties.INTPTLON}</p>
                 `}
               </div>
