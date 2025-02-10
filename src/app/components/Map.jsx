@@ -108,6 +108,181 @@ const formatStatePopup = (feature) => {
   `;
 };
 
+// Add this new component at the top of the file
+const SearchBox = ({ map }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const searchRef = useRef(null);
+
+  // Handle search input
+  const handleSearch = async (term) => {
+    setSearchTerm(term);
+    if (term.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/search?term=${encodeURIComponent(term)}`);
+      const { success, data } = await response.json();
+      if (success) {
+        setSearchResults(data.slice(0, 5)); // Limit to 5 results
+        setIsOpen(true);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    }
+  };
+
+  // Handle selection
+  const handleSelect = (result) => {
+    if (!map.current) {
+      console.error('Map not initialized');
+      return;
+    }
+
+    console.log('Selected result:', result);
+
+    // Get the feature from the relevant layer based on the result type
+    switch (result.layerId) {
+      case 'region':
+        if (result.metadata?.bounds) {
+          map.current.fitBounds([
+            [result.metadata.bounds.west, result.metadata.bounds.south],
+            [result.metadata.bounds.east, result.metadata.bounds.north]
+          ], { padding: 50 });
+        }
+        break;
+        
+      case 'state':
+        // Use the state's name to find it in the rendered features
+        const stateFeatures = map.current.queryRenderedFeatures({
+          layers: ['states-layer'],
+          filter: ['==', ['get', 'basename'], result.name]
+        });
+        if (stateFeatures.length > 0) {
+          const bounds = new mapboxgl.LngLatBounds();
+          stateFeatures[0].geometry.coordinates[0].forEach(coord => {
+            bounds.extend(coord);
+          });
+          map.current.fitBounds(bounds, { padding: 50 });
+        }
+        break;
+        
+      case 'county':
+        // Use the county's name to find it in the rendered features
+        const countyFeatures = map.current.queryRenderedFeatures({
+          layers: ['distressed-layer', ...Array.from({length: 8}, (_, i) => `socially-disadvantaged-layer-${i + 1}`)],
+          filter: ['all',
+            ['==', ['get', 'County'], result.name.split(',')[0]],
+            ['==', ['get', 'State'], result.name.split(', ')[1]]
+          ]
+        });
+        if (countyFeatures.length > 0) {
+          const bounds = new mapboxgl.LngLatBounds();
+          countyFeatures[0].geometry.coordinates[0].forEach(coord => {
+            bounds.extend(coord);
+          });
+          map.current.fitBounds(bounds, { padding: 50 });
+        }
+        break;
+        
+      case 'tribal-nation':
+        // Get the feature directly from the reservations source
+        const tribalFeatures = map.current.querySourceFeatures('reservations', {
+          filter: ['==', 'NAME', result.name] // Use the exact name from the database
+        });
+
+        if (tribalFeatures.length > 0) {
+          const feature = tribalFeatures[0];
+          const bounds = new mapboxgl.LngLatBounds();
+          
+          // Handle both Polygon and MultiPolygon geometries
+          if (feature.geometry.type === 'Polygon') {
+            feature.geometry.coordinates[0].forEach(coord => bounds.extend(coord));
+          } else if (feature.geometry.type === 'MultiPolygon') {
+            feature.geometry.coordinates.forEach(polygon => {
+              polygon[0].forEach(coord => bounds.extend(coord));
+            });
+          }
+
+          map.current.fitBounds(bounds, {
+            padding: { top: 50, bottom: 50, left: 50, right: 50 }
+          });
+        }
+        break;
+    }
+
+    setSearchTerm('');
+    setSearchResults([]);
+    setIsOpen(false);
+  };
+
+  return (
+    <div 
+      ref={searchRef}
+      style={{
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        zIndex: 999,
+        width: '300px',
+      }}
+    >
+      <input
+        type="text"
+        placeholder="Search for a location..."
+        value={searchTerm}
+        onChange={(e) => handleSearch(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '8px 12px',
+          borderRadius: '4px',
+          border: '1px solid #ccc',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          fontSize: '14px',
+          color: '#000000',
+        }}
+      />
+      {isOpen && searchResults.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          backgroundColor: 'white',
+          borderRadius: '4px',
+          marginTop: '4px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          maxHeight: '300px',
+          overflowY: 'auto',
+        }}>
+          {searchResults.map((result, index) => (
+            <div
+              key={result.featureId}
+              onClick={() => handleSelect(result)}
+              style={{
+                padding: '8px 12px',
+                cursor: 'pointer',
+                borderBottom: index < searchResults.length - 1 ? '1px solid #eee' : 'none',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                },
+              }}
+            >
+              <div style={{ fontWeight: 'bold', color: '#000000' }}>{result.name}</div>
+              <div style={{ fontSize: '0.9em', color: '#333333' }}>
+                {result.layerId.charAt(0).toUpperCase() + result.layerId.slice(1)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Map() {
   const mapContainer = useRef(null)
   const map = useRef(null)
@@ -1022,10 +1197,8 @@ export default function Map() {
 
   return (
     <>
-      <div 
-        ref={mapContainer} 
-        style={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }} 
-      />
+      <div ref={mapContainer} style={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }} />
+      <SearchBox map={map} />
       <div style={{
         position: 'absolute',
         top: 10,
