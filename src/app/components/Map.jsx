@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
@@ -438,6 +439,23 @@ const SearchBox = ({ map, setLayerVisibility }) => {
       )}
     </div>
   );
+};
+
+// First, add these color constants at the top of the file
+const LAYER_COLORS = {
+  states: '#808080',  // Gray for state boundaries
+  regions: {
+    'Pacific West': '#98E698',
+    'West Central': '#FFE066',
+    'South Central': '#E5A1E5',
+    'East Central': '#FF6B6B',
+    'Southeast': '#FF9F5B',
+    'Northeast': '#69C3E5'
+  },
+  distressed: '#FFA07A',  // Light salmon for distressed areas
+  reservations: '#7FDBDA',  // Turquoise for tribal nations
+  epaDisadvantaged: '#FF0000',  // Red for EPA disadvantaged
+  sociallyDisadvantaged: '#9370DB'  // Purple for socially disadvantaged
 };
 
 export default function Map() {
@@ -1428,19 +1446,46 @@ export default function Map() {
                 {expandedLayers.states ? '−' : '+'}
               </button>
             </div>
-            {expandedLayers.states && (
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#666', 
-                marginTop: '4px', 
-                paddingLeft: '20px', 
-                textAlign: 'justify',
-                wordBreak: 'break-word',  // Add word breaking
-                hyphens: 'auto'  // Add hyphenation
-              }}>
-                Shows state boundaries across the United States, including Alaska, Hawaii, and Pacific territories.
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {expandedLayers.states && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ 
+                    height: { duration: 0.2 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#666', 
+                    marginTop: '4px', 
+                    paddingLeft: '20px', 
+                    textAlign: 'justify',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto'
+                  }}>
+                    Shows state boundaries across the United States, including Alaska, Hawaii, and Pacific territories.
+                    <div style={{ 
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        border: `2px solid ${LAYER_COLORS.states}`,
+                        borderRadius: '2px'
+                      }} />
+                      <span>State boundary outline</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div style={{ marginBottom: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1464,19 +1509,50 @@ export default function Map() {
                 {expandedLayers.regions ? '−' : '+'}
               </button>
             </div>
-            {expandedLayers.regions && (
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#666', 
-                marginTop: '4px', 
-                paddingLeft: '20px', 
-                textAlign: 'justify',
-                wordBreak: 'break-word',  // Add word breaking
-                hyphens: 'auto'  // Add hyphenation
-              }}>
-                Displays the six major regions of CEC partners (not including Tribal Nations): Pacific West, West Central, South Central, East Central, Southeast, and Northeast.
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {expandedLayers.regions && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ 
+                    height: { duration: 0.2 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#666', 
+                    marginTop: '4px', 
+                    paddingLeft: '20px', 
+                    textAlign: 'justify',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto'
+                  }}>
+                    Displays the six major regions of CEC partners.
+                    <div style={{ 
+                      marginTop: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px'
+                    }}>
+                      {Object.entries(LAYER_COLORS.regions).map(([region, color]) => (
+                        <div key={region} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: color,
+                            borderRadius: '2px'
+                          }} />
+                          <span>{region}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div style={{ marginBottom: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1500,19 +1576,47 @@ export default function Map() {
                 {expandedLayers.distressed ? '−' : '+'}
               </button>
             </div>
-            {expandedLayers.distressed && (
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#666', 
-                marginTop: '4px', 
-                paddingLeft: '20px', 
-                textAlign: 'justify',
-                wordBreak: 'break-word',  // Add word breaking
-                hyphens: 'auto'  // Add hyphenation
-              }}>
-                Areas identified as economically distressed based on factors including poverty rates, unemployment, and economic indicators.
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {expandedLayers.distressed && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ 
+                    height: { duration: 0.2 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#666', 
+                    marginTop: '4px', 
+                    paddingLeft: '20px', 
+                    textAlign: 'justify',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto'
+                  }}>
+                    Areas identified as economically distressed based on factors including poverty rates, unemployment, and economic indicators.
+                    <div style={{ 
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        backgroundColor: LAYER_COLORS.distressed,
+                        opacity: 0.7,
+                        borderRadius: '2px'
+                      }} />
+                      <span>Distressed area</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div style={{ marginBottom: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1536,19 +1640,47 @@ export default function Map() {
                 {expandedLayers.reservations ? '−' : '+'}
               </button>
             </div>
-            {expandedLayers.reservations && (
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#666', 
-                marginTop: '4px', 
-                paddingLeft: '20px', 
-                textAlign: 'justify',
-                wordBreak: 'break-word',  // Add word breaking
-                hyphens: 'auto'  // Add hyphenation
-              }}>
-                Shows boundaries of federally recognized tribal reservations and trust lands across the United States.
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {expandedLayers.reservations && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ 
+                    height: { duration: 0.2 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#666', 
+                    marginTop: '4px', 
+                    paddingLeft: '20px', 
+                    textAlign: 'justify',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto'
+                  }}>
+                    Shows boundaries of federally recognized tribal reservations and trust lands across the United States.
+                    <div style={{ 
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        backgroundColor: LAYER_COLORS.reservations,
+                        opacity: 0.7,
+                        borderRadius: '2px'
+                      }} />
+                      <span>Tribal reservation boundary</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div style={{ marginBottom: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1572,19 +1704,47 @@ export default function Map() {
                 {expandedLayers.epaDisadvantaged ? '−' : '+'}
               </button>
             </div>
-            {expandedLayers.epaDisadvantaged && (
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#666', 
-                marginTop: '4px', 
-                paddingLeft: '20px', 
-                textAlign: 'justify',
-                wordBreak: 'break-word',  // Add word breaking
-                hyphens: 'auto'  // Add hyphenation
-              }}>
-                Communities identified by the EPA as disadvantaged based on environmental, health, and socioeconomic indicators.
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {expandedLayers.epaDisadvantaged && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ 
+                    height: { duration: 0.2 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#666', 
+                    marginTop: '4px', 
+                    paddingLeft: '20px', 
+                    textAlign: 'justify',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto'
+                  }}>
+                    Communities identified by the EPA as disadvantaged based on environmental, health, and socioeconomic indicators.
+                    <div style={{ 
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        backgroundColor: LAYER_COLORS.epaDisadvantaged,
+                        opacity: 0.5,
+                        borderRadius: '2px'
+                      }} />
+                      <span>EPA disadvantaged community</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div style={{ marginBottom: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1608,19 +1768,47 @@ export default function Map() {
                 {expandedLayers.sociallyDisadvantaged ? '−' : '+'}
               </button>
             </div>
-            {expandedLayers.sociallyDisadvantaged && (
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#666', 
-                marginTop: '4px', 
-                paddingLeft: '20px', 
-                textAlign: 'justify',
-                wordBreak: 'break-word',  // Add word breaking
-                hyphens: 'auto'  // Add hyphenation
-              }}>
-                Areas identified as socially disadvantaged based on demographic, economic, and social vulnerability factors.
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {expandedLayers.sociallyDisadvantaged && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ 
+                    height: { duration: 0.2 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#666', 
+                    marginTop: '4px', 
+                    paddingLeft: '20px', 
+                    textAlign: 'justify',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto'
+                  }}>
+                    Areas identified as socially disadvantaged based on demographic, economic, and social vulnerability factors.
+                    <div style={{ 
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        backgroundColor: LAYER_COLORS.sociallyDisadvantaged,
+                        opacity: 0.6,
+                        borderRadius: '2px'
+                      }} />
+                      <span>Socially disadvantaged area</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
         

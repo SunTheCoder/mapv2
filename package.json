@@ -20,6 +20,7 @@
     "@aws-sdk/client-s3": "^3.738.0",
     "@supabase/supabase-js": "^2.48.1",
     "dotenv": "^16.4.7",
+    "framer-motion": "^12.4.2",
     "mapbox-gl": "^3.9.4",
     "next": "15.1.6",
     "pg": "^8.11.3",
