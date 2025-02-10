@@ -108,8 +108,8 @@ const formatStatePopup = (feature) => {
   `;
 };
 
-// Add this new component at the top of the file
-const SearchBox = ({ map }) => {
+// Pass setLayerVisibility to SearchBox
+const SearchBox = ({ map, setLayerVisibility }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -144,130 +144,182 @@ const SearchBox = ({ map }) => {
 
     console.log('Selected result:', result);
 
-    // Get the feature from the relevant layer based on the result type
+    // First enable the required layer and update state
     switch (result.layerId) {
-      case 'region':
-        if (result.metadata?.bounds) {
-          map.current.fitBounds([
-            [result.metadata.bounds.west, result.metadata.bounds.south],
-            [result.metadata.bounds.east, result.metadata.bounds.north]
-          ], { padding: 50 });
-        }
-        break;
-        
       case 'state':
-        // Special handling for Pacific territories
-        if (result.name === 'Guam' || result.name === 'Commonwealth of the Northern Mariana Islands') {
-          // Zoom directly to their coordinates
-          if (result.name === 'Guam') {
-            map.current.flyTo({
-              center: [144.7937, 13.4443], // Guam coordinates
-              zoom: 8,
-              padding: { top: 50, bottom: 50, left: 50, right: 50 }
-            });
-            return;
-          } else {
-            map.current.flyTo({
-              center: [145.6739, 15.0979], // Northern Mariana Islands coordinates
-              zoom: 7,
-              padding: { top: 50, bottom: 50, left: 50, right: 50 }
-            });
-            return;
-          }
-        }
-
-        // Regular state handling continues...
-        const stateFeatures = map.current.querySourceFeatures('states', {
-          filter: ['==', ['get', 'name'], result.name]
-        });
-
-        if (stateFeatures.length > 0) {
-          const bounds = new mapboxgl.LngLatBounds();
-          stateFeatures[0].geometry.coordinates[0].forEach(coord => {
-            bounds.extend(coord);
-          });
-          map.current.fitBounds(bounds, { 
-            padding: { top: 50, bottom: 50, left: 50, right: 50 }
-          });
-        } else {
-          // If not found, zoom out first
-          map.current.fitBounds([
-            [-125.0, 24.396308],
-            [-66.93457, 49.384358]
-          ], { 
-            padding: { top: 50, bottom: 50, left: 50, right: 50 },
-            duration: 0
-          });
-
-          // After zooming out, try to find the feature again
-          setTimeout(() => {
-            const features = map.current.querySourceFeatures('states', {
-              filter: ['==', ['get', 'name'], result.name]
-            });
-
-            if (features.length > 0) {
-              const bounds = new mapboxgl.LngLatBounds();
-              features[0].geometry.coordinates[0].forEach(coord => {
-                bounds.extend(coord);
-              });
-              map.current.fitBounds(bounds, { 
-                padding: { top: 50, bottom: 50, left: 50, right: 50 }
-              });
-            }
-          }, 100);
-        }
+        map.current.setLayoutProperty('states-layer', 'visibility', 'visible');
+        setLayerVisibility(prev => ({ ...prev, states: true }));
         break;
         
       case 'county':
-        console.log('County search result:', result);
-        
-        // First zoom to the state to ensure features are rendered
-        const stateBounds = map.current.querySourceFeatures('states', {
-          filter: ['==', ['get', 'name'], result.name.split(', ')[1]]  // Search for South Dakota
-        });
-
-        if (stateBounds.length > 0) {
-          // Zoom to state first
-          const bounds = new mapboxgl.LngLatBounds();
-          stateBounds[0].geometry.coordinates[0].forEach(coord => {
-            bounds.extend(coord);
-          });
-          map.current.fitBounds(bounds, {
-            padding: { top: 50, bottom: 50, left: 50, right: 50 }
-          });
+        for (let i = 1; i <= 8; i++) {
+          map.current.setLayoutProperty(
+            `socially-disadvantaged-layer-${i}`,
+            'visibility',
+            'visible'
+          );
         }
+        setLayerVisibility(prev => ({ ...prev, sociallyDisadvantaged: true }));
+        break;
+        
+      case 'tribal-nation':
+        map.current.setLayoutProperty('reservations-layer', 'visibility', 'visible');
+        setLayerVisibility(prev => ({ ...prev, reservations: true }));
+        break;
+    }
 
-        // After zooming to state, try to find the county
-        setTimeout(() => {
-          const countyFeatures = map.current.queryRenderedFeatures({
-            layers: [
-              'socially-disadvantaged-layer-1',
-              'socially-disadvantaged-layer-2',
-              'socially-disadvantaged-layer-3',
-              'socially-disadvantaged-layer-4',
-              'socially-disadvantaged-layer-5',
-              'socially-disadvantaged-layer-6',
-              'socially-disadvantaged-layer-7',
-              'socially-disadvantaged-layer-8'
-            ],
-            filter: ['all',
-              ['==', ['get', 'name'], result.name.split(', ')[0]],
-              ['==', ['get', 'state'], result.name.split(', ')[1]]
-            ]
+    // Wait a brief moment for layer visibility to update
+    setTimeout(() => {
+      // Then proceed with existing zoom/search logic
+      switch (result.layerId) {
+        case 'region':
+          if (result.metadata?.bounds) {
+            map.current.fitBounds([
+              [result.metadata.bounds.west, result.metadata.bounds.south],
+              [result.metadata.bounds.east, result.metadata.bounds.north]
+            ], { padding: 50 });
+          }
+          break;
+          
+        case 'state':
+          // Special handling for Pacific territories
+          if (result.name === 'Guam' || result.name === 'Commonwealth of the Northern Mariana Islands') {
+            // Zoom directly to their coordinates
+            if (result.name === 'Guam') {
+              map.current.flyTo({
+                center: [144.7937, 13.4443], // Guam coordinates
+                zoom: 8,
+                padding: { top: 50, bottom: 50, left: 50, right: 50 }
+              });
+              return;
+            } else {
+              map.current.flyTo({
+                center: [145.6739, 15.0979], // Northern Mariana Islands coordinates
+                zoom: 7,
+                padding: { top: 50, bottom: 50, left: 50, right: 50 }
+              });
+              return;
+            }
+          }
+
+          // Regular state handling continues...
+          const stateFeatures = map.current.querySourceFeatures('states', {
+            filter: ['==', ['get', 'name'], result.name]
           });
 
-          console.log('Found county features:', countyFeatures);
+          if (stateFeatures.length > 0) {
+            const bounds = new mapboxgl.LngLatBounds();
+            stateFeatures[0].geometry.coordinates[0].forEach(coord => {
+              bounds.extend(coord);
+            });
+            map.current.fitBounds(bounds, { 
+              padding: { top: 50, bottom: 50, left: 50, right: 50 }
+            });
+          } else {
+            // If not found, zoom out first
+            map.current.fitBounds([
+              [-125.0, 24.396308],
+              [-66.93457, 49.384358]
+            ], { 
+              padding: { top: 50, bottom: 50, left: 50, right: 50 },
+              duration: 0
+            });
 
-          if (countyFeatures.length > 0) {
+            // After zooming out, try to find the feature again
+            setTimeout(() => {
+              const features = map.current.querySourceFeatures('states', {
+                filter: ['==', ['get', 'name'], result.name]
+              });
+
+              if (features.length > 0) {
+                const bounds = new mapboxgl.LngLatBounds();
+                features[0].geometry.coordinates[0].forEach(coord => {
+                  bounds.extend(coord);
+                });
+                map.current.fitBounds(bounds, { 
+                  padding: { top: 50, bottom: 50, left: 50, right: 50 }
+                });
+              }
+            }, 100);
+          }
+          break;
+          
+        case 'county':
+          console.log('County search result:', result);
+          
+          // First zoom to the state to ensure features are rendered
+          const stateBounds = map.current.querySourceFeatures('states', {
+            filter: ['==', ['get', 'name'], result.name.split(', ')[1]]  // Search for South Dakota
+          });
+
+          if (stateBounds.length > 0) {
+            // Zoom to state first
+            const bounds = new mapboxgl.LngLatBounds();
+            stateBounds[0].geometry.coordinates[0].forEach(coord => {
+              bounds.extend(coord);
+            });
+            map.current.fitBounds(bounds, {
+              padding: { top: 50, bottom: 50, left: 50, right: 50 }
+            });
+          }
+
+          // After zooming to state, try to find the county
+          setTimeout(() => {
+            const countyFeatures = map.current.queryRenderedFeatures({
+              layers: [
+                'socially-disadvantaged-layer-1',
+                'socially-disadvantaged-layer-2',
+                'socially-disadvantaged-layer-3',
+                'socially-disadvantaged-layer-4',
+                'socially-disadvantaged-layer-5',
+                'socially-disadvantaged-layer-6',
+                'socially-disadvantaged-layer-7',
+                'socially-disadvantaged-layer-8'
+              ],
+              filter: ['all',
+                ['==', ['get', 'name'], result.name.split(', ')[0]],
+                ['==', ['get', 'state'], result.name.split(', ')[1]]
+              ]
+            });
+
+            console.log('Found county features:', countyFeatures);
+
+            if (countyFeatures.length > 0) {
+              const bounds = new mapboxgl.LngLatBounds();
+              
+              // Handle both Polygon and MultiPolygon geometries
+              if (countyFeatures[0].geometry.type === 'Polygon') {
+                countyFeatures[0].geometry.coordinates[0].forEach(coord => {
+                  bounds.extend(coord);
+                });
+              } else if (countyFeatures[0].geometry.type === 'MultiPolygon') {
+                countyFeatures[0].geometry.coordinates.forEach(polygon => {
+                  polygon[0].forEach(coord => bounds.extend(coord));
+                });
+              }
+
+              map.current.fitBounds(bounds, {
+                padding: { top: 50, bottom: 50, left: 50, right: 50 }
+              });
+            }
+          }, 1000); // Give it more time to render
+          break;
+          
+        case 'tribal-nation':
+          // Get the feature directly from the reservations source
+          const tribalFeatures = map.current.querySourceFeatures('reservations', {
+            filter: ['==', 'NAME', result.name] // Use the exact name from the database
+          });
+
+          if (tribalFeatures.length > 0) {
+            const feature = tribalFeatures[0];
             const bounds = new mapboxgl.LngLatBounds();
             
             // Handle both Polygon and MultiPolygon geometries
-            if (countyFeatures[0].geometry.type === 'Polygon') {
-              countyFeatures[0].geometry.coordinates[0].forEach(coord => {
-                bounds.extend(coord);
-              });
-            } else if (countyFeatures[0].geometry.type === 'MultiPolygon') {
-              countyFeatures[0].geometry.coordinates.forEach(polygon => {
+            if (feature.geometry.type === 'Polygon') {
+              feature.geometry.coordinates[0].forEach(coord => bounds.extend(coord));
+            } else if (feature.geometry.type === 'MultiPolygon') {
+              feature.geometry.coordinates.forEach(polygon => {
                 polygon[0].forEach(coord => bounds.extend(coord));
               });
             }
@@ -276,34 +328,9 @@ const SearchBox = ({ map }) => {
               padding: { top: 50, bottom: 50, left: 50, right: 50 }
             });
           }
-        }, 1000); // Give it more time to render
-        break;
-        
-      case 'tribal-nation':
-        // Get the feature directly from the reservations source
-        const tribalFeatures = map.current.querySourceFeatures('reservations', {
-          filter: ['==', 'NAME', result.name] // Use the exact name from the database
-        });
-
-        if (tribalFeatures.length > 0) {
-          const feature = tribalFeatures[0];
-          const bounds = new mapboxgl.LngLatBounds();
-          
-          // Handle both Polygon and MultiPolygon geometries
-          if (feature.geometry.type === 'Polygon') {
-            feature.geometry.coordinates[0].forEach(coord => bounds.extend(coord));
-          } else if (feature.geometry.type === 'MultiPolygon') {
-            feature.geometry.coordinates.forEach(polygon => {
-              polygon[0].forEach(coord => bounds.extend(coord));
-            });
-          }
-
-          map.current.fitBounds(bounds, {
-            padding: { top: 50, bottom: 50, left: 50, right: 50 }
-          });
-        }
-        break;
-    }
+          break;
+      }
+    }, 100); // Brief delay to ensure layer is visible
 
     setSearchTerm('');
     setSearchResults([]);
@@ -1304,7 +1331,10 @@ export default function Map() {
   return (
     <>
     <div ref={mapContainer} style={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }} />
-      <SearchBox map={map} />
+      <SearchBox 
+        map={map} 
+        setLayerVisibility={setLayerVisibility}
+      />
       <div style={{
         position: 'absolute',
         top: 10,
