@@ -219,21 +219,64 @@ const SearchBox = ({ map }) => {
         break;
         
       case 'county':
-        // Use the county's name to find it in the rendered features
-        const countyFeatures = map.current.queryRenderedFeatures({
-          layers: ['distressed-layer', ...Array.from({length: 8}, (_, i) => `socially-disadvantaged-layer-${i + 1}`)],
-          filter: ['all',
-            ['==', ['get', 'County'], result.name.split(',')[0]],
-            ['==', ['get', 'State'], result.name.split(', ')[1]]
-          ]
+        console.log('County search result:', result);
+        
+        // First zoom to the state to ensure features are rendered
+        const stateBounds = map.current.querySourceFeatures('states', {
+          filter: ['==', ['get', 'name'], result.name.split(', ')[1]]  // Search for South Dakota
         });
-        if (countyFeatures.length > 0) {
+
+        if (stateBounds.length > 0) {
+          // Zoom to state first
           const bounds = new mapboxgl.LngLatBounds();
-          countyFeatures[0].geometry.coordinates[0].forEach(coord => {
+          stateBounds[0].geometry.coordinates[0].forEach(coord => {
             bounds.extend(coord);
           });
-          map.current.fitBounds(bounds, { padding: 50 });
+          map.current.fitBounds(bounds, {
+            padding: { top: 50, bottom: 50, left: 50, right: 50 }
+          });
         }
+
+        // After zooming to state, try to find the county
+        setTimeout(() => {
+          const countyFeatures = map.current.queryRenderedFeatures({
+            layers: [
+              'socially-disadvantaged-layer-1',
+              'socially-disadvantaged-layer-2',
+              'socially-disadvantaged-layer-3',
+              'socially-disadvantaged-layer-4',
+              'socially-disadvantaged-layer-5',
+              'socially-disadvantaged-layer-6',
+              'socially-disadvantaged-layer-7',
+              'socially-disadvantaged-layer-8'
+            ],
+            filter: ['all',
+              ['==', ['get', 'name'], result.name.split(', ')[0]],
+              ['==', ['get', 'state'], result.name.split(', ')[1]]
+            ]
+          });
+
+          console.log('Found county features:', countyFeatures);
+
+          if (countyFeatures.length > 0) {
+            const bounds = new mapboxgl.LngLatBounds();
+            
+            // Handle both Polygon and MultiPolygon geometries
+            if (countyFeatures[0].geometry.type === 'Polygon') {
+              countyFeatures[0].geometry.coordinates[0].forEach(coord => {
+                bounds.extend(coord);
+              });
+            } else if (countyFeatures[0].geometry.type === 'MultiPolygon') {
+              countyFeatures[0].geometry.coordinates.forEach(polygon => {
+                polygon[0].forEach(coord => bounds.extend(coord));
+              });
+            }
+
+            map.current.fitBounds(bounds, {
+              padding: { top: 50, bottom: 50, left: 50, right: 50 }
+            });
+          }
+        }, 1000); // Give it more time to render
         break;
         
       case 'tribal-nation':
@@ -432,7 +475,7 @@ export default function Map() {
 
   useEffect(() => {
     if (map.current) return;
-
+    
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
@@ -600,7 +643,7 @@ export default function Map() {
               }
             }, 'states-layer')
             console.log(`Added layer ${layerId} with source-layer ${chunkNames[i]}`)
-          } catch (error) {
+      } catch (error) {
             console.error(`Error adding socially disadvantaged layer ${layerId}:`, error)
           }
         }
@@ -730,7 +773,7 @@ export default function Map() {
           map.current.addSource(regionId, {
             type: 'geojson',
             data: {
-              type: 'FeatureCollection',
+          type: 'FeatureCollection',
               features: regionFeatures
             }
           })
@@ -1244,7 +1287,7 @@ export default function Map() {
 
   return (
     <>
-      <div ref={mapContainer} style={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }} />
+    <div ref={mapContainer} style={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }} />
       <SearchBox map={map} />
       <div style={{
         position: 'absolute',

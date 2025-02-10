@@ -13,7 +13,7 @@ export async function GET(request) {
       .from('Features')
       .select('*')
       .or(`name.ilike.%${term}%,description.ilike.%${term}%`)
-      .in('layerId', ['tribal-nation', 'state'])
+      .in('layerId', ['tribal-nation', 'state', 'county'])
       .order('name')
       .limit(5);
 
