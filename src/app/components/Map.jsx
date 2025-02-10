@@ -1279,14 +1279,26 @@ export default function Map() {
             if (e.features.length > 0) {
               const coordinates = e.lngLat;
               
+              // Create the featureId using the database format
+              const regionLayerIds = {
+                'Pacific West': 'pacific-west',
+                'West Central': 'west-central',
+                'South Central': 'south-central',
+                'East Central': 'east-central',
+                'Southeast': 'south-east',    // Match database layerId
+                'Northeast': 'north-east'     // Match database layerId
+              };
+              
+              const featureId = regionLayerIds[region];
+              
               // Log the query we're about to make
               console.log('Making query with:', {
                 layerId: 'region',
-                featureId: region.toLowerCase().replace(/\s+/g, '-')
+                featureId: featureId
               });
 
               try {
-                const response = await fetch(`/api/features?layerId=region&featureId=${region.toLowerCase().replace(/\s+/g, '-')}`);
+                const response = await fetch(`/api/features?layerId=region&featureId=${featureId}`);
                 const { success, data, error } = await response.json();
                 console.log('API Response:', { success, data, error });
                 
