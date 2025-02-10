@@ -681,26 +681,53 @@ export default function Map() {
         })
 
         // Add click handlers for reservations
-        map.current.on('click', 'reservations-layer', (e) => {
-          const coordinates = e.lngLat
-          const properties = e.features[0].properties
+        map.current.on('click', 'reservations-layer', async (e) => {
+          const coordinates = e.lngLat;
+          const properties = e.features[0].properties;
 
-          // Format the popup content
-          const content = `
-            <div style="padding: 8px; color: black;">
-              <h3 style="margin: 0 0 8px 0; color: black;">Tribal Nation</h3>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Name:</strong> ${properties.NAME}</p>
-              <p style="margin: 0 0 5px 0; color: black;"><strong>Latitude:</strong> ${properties.INTPTLAT}</p>
-              <p style="margin: 0; color: black;"><strong>Longitude:</strong> ${properties.INTPTLON}</p>
-            </div>
-          `
-          console.log(properties)
+          // Format tribal-nation ID with hyphens between words
+          const tribalName = properties.NAME?.toLowerCase()
+            .replace(/\s+reservation(\s+and\s+off-reservation\s+trust\s+land)?/i, '') // Handle both formats
+            .replace(/\s+/g, '-');
+          const stateName = 'south-dakota';
+          const tribalStateId = `${tribalName}-${stateName}`;
 
-          popup
-            .setLngLat(coordinates)
-            .setHTML(content)
-            .addTo(map.current)
-        })
+          console.log('Original name:', properties.NAME);
+          console.log('Formatted ID:', tribalStateId);
+
+          try {
+            const response = await fetch(`/api/features?layerId=tribal-nation&featureId=${tribalStateId}`);
+            const { success, data } = await response.json();
+            console.log('Supabase response:', { success, data });
+
+            const content = `
+              <div style="padding: 8px; color: black;">
+                <h3 style="margin: 0 0 8px 0; color: black;">${properties.NAME}</h3>
+                
+                ${success && data && data.length > 0 ? `
+                  <p style="margin: 0 0 5px 0; color: black;">${data[0].description}</p>
+                  <div style="margin: 8px 0;">
+                    ${Object.entries(data[0].metadata).map(([key, value]) => `
+                      <p style="margin: 0 0 5px 0; color: black;">
+                        <strong>${key.replace(/_/g, ' ')}:</strong> ${Array.isArray(value) ? value.join(', ') : value}
+                      </p>
+                    `).join('')}
+                  </div>
+                ` : `
+                  <!-- Fallback to basic info if no Supabase data -->
+                  <p style="margin: 0 0 5px 0; color: black;"><strong>Location:</strong> ${properties.INTPTLAT}, ${properties.INTPTLON}</p>
+                `}
+              </div>
+            `;
+
+            popup
+              .setLngLat(coordinates)
+              .setHTML(content)
+              .addTo(map.current);
+          } catch (error) {
+            console.error('Error fetching tribal nation data:', error);
+          }
+        });
 
         // Add click handlers for distressed areas
         map.current.on('click', 'distressed-layer', async (e) => {
@@ -708,15 +735,15 @@ export default function Map() {
             const coordinates = e.lngLat;
             const properties = e.features[0].properties;
             
-            // Format county-state ID to match database format (e.g., "bennett-southdakota")
+            // Format county-state ID with hyphens between all words (e.g., "bennett-south-dakota")
             const countyName = properties.County?.toLowerCase()
               .replace(/\s+county/i, '') // Remove 'County' if present
               .replace(/\s+/g, '-');
             const stateName = properties.State?.toLowerCase()
-              .replace(/\s+/g, ''); // Remove all spaces without adding hyphens
+              .replace(/\s+/g, '-'); // Add hyphens between state words
             const countyStateId = `${countyName}-${stateName}`;
 
-            console.log('Fetching county data for:', countyStateId); // Debug log
+            console.log('Fetching county data for:', countyStateId);
 
             try {
               const response = await fetch(`/api/features?layerId=county&featureId=${countyStateId}`);
@@ -766,53 +793,54 @@ export default function Map() {
         })
 
         // Add click handlers for all EPA layers
-        for (let i = 1; i <= 7; i++) {
-          const layerId = `epa-disadvantaged-layer-${i}`;
-          map.current.on('click', layerId, async (e) => {
-            const coordinates = e.lngLat;
-            const properties = e.features[0].properties;
-            const countyName = properties.COUNTY?.toLowerCase();
-            const stateName = properties.STATE?.toLowerCase();
+        // for (let i = 1; i <= 7; i++) {
+        //   const layerId = `epa-disadvantaged-layer-${i}`;
+        //   map.current.on('click', layerId, async (e) => {
+        //     const coordinates = e.lngLat;
+        //     const properties = e.features[0].properties;
+        //     const countyName = properties.COUNTY?.toLowerCase();
+        //     const stateName = properties.STATE?.toLowerCase();
+            
 
-            try {
-              // Fetch county data from Supabase if it exists
-              const response = await fetch(`/api/features?layerId=county&featureId=${countyName}-${stateName}`);
-              const { success, data } = await response.json();
+        //     try {
+        //       // Fetch county data from Supabase if it exists
+        //       const response = await fetch(`/api/features?layerId=county&featureId=${countyName}-${stateName}`);
+        //       const { success, data } = await response.json();
               
-              // Combine EPA data with Supabase data if available
-              const content = `
-                <div style="padding: 8px; color: black;">
-                  <h3 style="margin: 0 0 8px 0; color: black;">${properties.COUNTY}, ${properties.STATE}</h3>
+        //       // Combine EPA data with Supabase data if available
+        //       const content = `
+        //         <div style="padding: 8px; color: black;">
+        //           <h3 style="margin: 0 0 8px 0; color: black;">${properties.COUNTY}, ${properties.STATE}</h3>
                   
-                  <!-- EPA Data -->
-                  <div style="margin: 8px 0;">
-                    <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.LOCATION}</p>
-                    <p style="margin: 0 0 5px 0; color: black;"><strong>EPA Score:</strong> ${properties.SCORE || 'N/A'}</p>
-                  </div>
+        //           <!-- EPA Data -->
+        //           <div style="margin: 8px 0;">
+        //             <p style="margin: 0 0 5px 0; color: black;"><strong>Census Tract:</strong> ${properties.DISADVANTAGED}</p>
+        //             <p style="margin: 0 0 5px 0; color: black;"><strong>EPA Score:</strong> ${properties.SCORE || 'N/A'}</p>
+        //           </div>
 
-                  ${success && data && data.length > 0 ? `
-                    <!-- Supabase County Data -->
-                    <div style="margin: 8px 0; border-top: 1px solid #ccc; padding-top: 8px;">
-                      <p style="margin: 0 0 5px 0; color: black;">${data[0].description}</p>
-                      ${Object.entries(data[0].metadata).map(([key, value]) => `
-                        <p style="margin: 0 0 5px 0; color: black;">
-                          <strong>${key.replace(/_/g, ' ')}:</strong> ${Array.isArray(value) ? value.join(', ') : value}
-                        </p>
-                      `).join('')}
-                    </div>
-                  ` : ''}
-                </div>
-              `;
+        //           ${success && data && data.length > 0 ? `
+        //             <!-- Supabase County Data -->
+        //             <div style="margin: 8px 0; border-top: 1px solid #ccc; padding-top: 8px;">
+        //               <p style="margin: 0 0 5px 0; color: black;">${data[0].description}</p>
+        //               ${Object.entries(data[0].metadata).map(([key, value]) => `
+        //                 <p style="margin: 0 0 5px 0; color: black;">
+        //                   <strong>${key.replace(/_/g, ' ')}:</strong> ${Array.isArray(value) ? value.join(', ') : value}
+        //                 </p>
+        //               `).join('')}
+        //             </div>
+        //           ` : ''}
+        //         </div>
+        //       `;
 
-              popup
-                .setLngLat(coordinates)
-                .setHTML(content)
-                .addTo(map.current);
-            } catch (error) {
-              console.error('Error fetching county data:', error);
-            }
-          });
-        }
+        //       popup
+        //         .setLngLat(coordinates)
+        //         .setHTML(content)
+        //         .addTo(map.current);
+        //     } catch (error) {
+        //       console.error('Error fetching county data:', error);
+        //     }
+        //   });
+        // }
 
         // Add after the EPA click handlers
         // Add click handlers for all socially disadvantaged layers
@@ -822,12 +850,12 @@ export default function Map() {
               const coordinates = e.lngLat;
               const properties = e.features[0].properties;
               
-              // Format county-state ID to match database format
+              // Format county-state ID with hyphens between all words
               const countyName = properties.COUNTY?.toLowerCase()
                 .replace(/\s+county/i, '')
                 .replace(/\s+/g, '-');
               const stateName = properties.STATE?.toLowerCase()
-                .replace(/\s+/g, '');
+                .replace(/\s+/g, '-'); // Add hyphens between state words
               const countyStateId = `${countyName}-${stateName}`;
 
               console.log('Fetching county data for:', countyStateId);
