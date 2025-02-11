@@ -1691,7 +1691,7 @@ export default function Map() {
                             opacity: 0.7,
                             borderRadius: '2px'
                           }} />
-                          <span>Tribal Nation boundary</span>
+                          <span>Tribal  boundary</span>
                         </div>
                       </div>
                     </motion.div>
