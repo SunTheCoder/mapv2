@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { motion, AnimatePresence } from 'framer-motion'
+import Tooltip from './Tooltip'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
@@ -480,6 +481,7 @@ export default function Map() {
   const [features, setFeatures] = useState([]);
   const [regionFeatures, setRegionFeatures] = useState(null);
   const [expandedLayers, setExpandedLayers] = useState({});
+  const [isLayerControlMinimized, setIsLayerControlMinimized] = useState(false);
 
   const toggleLayer = (layerId) => {
     const visibility = !layerVisibility[layerId]
@@ -1421,462 +1423,468 @@ export default function Map() {
         borderRadius: '4px',
         boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         color: 'black',
-        width: '280px'  // Add fixed width
+        width: isLayerControlMinimized ? 'auto' : '280px'
       }}>
-        <div>
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="checkbox"
-                  checked={layerVisibility.states}
-                  onChange={() => toggleLayer('states')}
-                />
-                State Boundaries
-              </label>
-              <button 
-                onClick={() => toggleAccordion('states')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0 5px'
-                }}
-              >
-                {expandedLayers.states ? '−' : '+'}
-              </button>
-            </div>
-            <AnimatePresence initial={false}>
-              {expandedLayers.states && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ 
-                    height: { duration: 0.2 },
-                    opacity: { duration: 0.2 }
-                  }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666', 
-                    marginTop: '4px', 
-                    paddingLeft: '20px', 
-                    textAlign: 'justify',
-                    wordBreak: 'break-word',
-                    hyphens: 'auto'
-                  }}>
-                    Shows state boundaries across the United States, including Alaska, Hawaii, and Pacific territories.
-                    <div style={{ 
-                      marginTop: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        border: `2px solid ${LAYER_COLORS.states}`,
-                        borderRadius: '2px'
-                      }} />
-                      <span>State boundary outline</span>
-                    </div>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: isLayerControlMinimized ? 0 : '10px',
+          cursor: 'pointer',
+          userSelect: 'none'
+        }}
+        onClick={() => setIsLayerControlMinimized(!isLayerControlMinimized)}
+        >
+          <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+            {isLayerControlMinimized ? 'Layers' : 'Layer Controls'}
+          </span>
+          <Tooltip text={isLayerControlMinimized ? "Expand layer controls" : "Minimize layer controls"}>
+            <motion.span
+              initial={false}
+              animate={{ rotate: isLayerControlMinimized ? 0 : 180 }}
+              style={{ fontSize: '18px', display: 'inline-block' }}
+            >
+              ▼
+            </motion.span>
+          </Tooltip>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {!isLayerControlMinimized && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div>
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <input
+                        type="checkbox"
+                        checked={layerVisibility.states}
+                        onChange={() => toggleLayer('states')}
+                      />
+                      State Boundaries
+                    </label>
+                    <button 
+                      onClick={() => toggleAccordion('states')}
+                      style={{ 
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0 5px'
+                      }}
+                    >
+                      {expandedLayers.states ? '−' : '+'}
+                    </button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="checkbox"
-                  checked={layerVisibility.regions}
-                  onChange={() => toggleLayer('regions')}
-                />
-                Regions
-              </label>
-              <button 
-                onClick={() => toggleAccordion('regions')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0 5px'
-                }}
-              >
-                {expandedLayers.regions ? '−' : '+'}
-              </button>
-            </div>
-            <AnimatePresence initial={false}>
-              {expandedLayers.regions && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ 
-                    height: { duration: 0.2 },
-                    opacity: { duration: 0.2 }
-                  }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666', 
-                    marginTop: '4px', 
-                    paddingLeft: '20px', 
-                    textAlign: 'justify',
-                    wordBreak: 'break-word',
-                    hyphens: 'auto'
-                  }}>
-                    Displays the six major regions of CEC partners.
-                    <div style={{ 
-                      marginTop: '8px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px'
-                    }}>
-                      {Object.entries(LAYER_COLORS.regions).map(([region, color]) => (
-                        <div key={region} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {expandedLayers.states && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#666', 
+                        marginTop: '4px', 
+                        paddingLeft: '20px', 
+                        textAlign: 'justify',
+                        wordBreak: 'break-word',
+                        hyphens: 'auto'
+                      }}>
+                        Shows state boundaries across the United States, including Alaska, Hawaii, and Pacific territories.
+                        <div style={{ 
+                          marginTop: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
                           <div style={{
                             width: '20px',
                             height: '20px',
-                            backgroundColor: color,
+                            border: `2px solid ${LAYER_COLORS.states}`,
                             borderRadius: '2px'
                           }} />
-                          <span>{region}</span>
+                          <span>State boundary outline</span>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <input
+                        type="checkbox"
+                        checked={layerVisibility.regions}
+                        onChange={() => toggleLayer('regions')}
+                      />
+                      Regions
+                    </label>
+                    <button 
+                      onClick={() => toggleAccordion('regions')}
+                      style={{ 
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0 5px'
+                      }}
+                    >
+                      {expandedLayers.regions ? '−' : '+'}
+                    </button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="checkbox"
-                  checked={layerVisibility.distressed}
-                  onChange={() => toggleLayer('distressed')}
-                />
-                Distressed Areas
-              </label>
-              <button 
-                onClick={() => toggleAccordion('distressed')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0 5px'
-                }}
-              >
-                {expandedLayers.distressed ? '−' : '+'}
-              </button>
-            </div>
-            <AnimatePresence initial={false}>
-              {expandedLayers.distressed && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ 
-                    height: { duration: 0.2 },
-                    opacity: { duration: 0.2 }
-                  }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666', 
-                    marginTop: '4px', 
-                    paddingLeft: '20px', 
-                    textAlign: 'justify',
-                    wordBreak: 'break-word',
-                    hyphens: 'auto'
-                  }}>
-                    Areas identified as economically distressed based on factors including poverty rates, unemployment, and economic indicators.
-                    <div style={{ 
-                      marginTop: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        backgroundColor: LAYER_COLORS.distressed,
-                        opacity: 0.7,
-                        borderRadius: '2px'
-                      }} />
-                      <span>Distressed area</span>
-                    </div>
+                  {expandedLayers.regions && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#666', 
+                        marginTop: '4px', 
+                        paddingLeft: '20px', 
+                        textAlign: 'justify',
+                        wordBreak: 'break-word',
+                        hyphens: 'auto'
+                      }}>
+                        Displays the six major regions of CEC partners.
+                        <div style={{ 
+                          marginTop: '8px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}>
+                          {Object.entries(LAYER_COLORS.regions).map(([region, color]) => (
+                            <div key={region} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{
+                                width: '20px',
+                                height: '20px',
+                                backgroundColor: color,
+                                borderRadius: '2px'
+                              }} />
+                              <span>{region}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <input
+                        type="checkbox"
+                        checked={layerVisibility.distressed}
+                        onChange={() => toggleLayer('distressed')}
+                      />
+                      Distressed Areas
+                    </label>
+                    <button 
+                      onClick={() => toggleAccordion('distressed')}
+                      style={{ 
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0 5px'
+                      }}
+                    >
+                      {expandedLayers.distressed ? '−' : '+'}
+                    </button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="checkbox"
-                  checked={layerVisibility.reservations}
-                  onChange={() => toggleLayer('reservations')}
-                />
-                Tribal Nations
-              </label>
-              <button 
-                onClick={() => toggleAccordion('reservations')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0 5px'
-                }}
-              >
-                {expandedLayers.reservations ? '−' : '+'}
-              </button>
-            </div>
-            <AnimatePresence initial={false}>
-              {expandedLayers.reservations && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ 
-                    height: { duration: 0.2 },
-                    opacity: { duration: 0.2 }
-                  }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666', 
-                    marginTop: '4px', 
-                    paddingLeft: '20px', 
-                    textAlign: 'justify',
-                    wordBreak: 'break-word',
-                    hyphens: 'auto'
-                  }}>
-                    Shows boundaries of federally recognized tribal reservations and trust lands across the United States.
-                    <div style={{ 
-                      marginTop: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        backgroundColor: LAYER_COLORS.reservations,
-                        opacity: 0.7,
-                        borderRadius: '2px'
-                      }} />
-                      <span>Tribal reservation boundary</span>
-                    </div>
+                  {expandedLayers.distressed && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#666', 
+                        marginTop: '4px', 
+                        paddingLeft: '20px', 
+                        textAlign: 'justify',
+                        wordBreak: 'break-word',
+                        hyphens: 'auto'
+                      }}>
+                        Areas identified as economically distressed based on factors including poverty rates, unemployment, and economic indicators.
+                        <div style={{ 
+                          marginTop: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: LAYER_COLORS.distressed,
+                            opacity: 0.7,
+                            borderRadius: '2px'
+                          }} />
+                          <span>Distressed area</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <input
+                        type="checkbox"
+                        checked={layerVisibility.reservations}
+                        onChange={() => toggleLayer('reservations')}
+                      />
+                      Tribal Nations
+                    </label>
+                    <button 
+                      onClick={() => toggleAccordion('reservations')}
+                      style={{ 
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0 5px'
+                      }}
+                    >
+                      {expandedLayers.reservations ? '−' : '+'}
+                    </button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="checkbox"
-                  checked={layerVisibility.epaDisadvantaged}
-                  onChange={() => toggleLayer('epaDisadvantaged')}
-                />
-                EPA Disadvantaged Communities
-              </label>
-              <button 
-                onClick={() => toggleAccordion('epaDisadvantaged')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0 5px'
-                }}
-              >
-                {expandedLayers.epaDisadvantaged ? '−' : '+'}
-              </button>
-            </div>
-            <AnimatePresence initial={false}>
-              {expandedLayers.epaDisadvantaged && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ 
-                    height: { duration: 0.2 },
-                    opacity: { duration: 0.2 }
-                  }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666', 
-                    marginTop: '4px', 
-                    paddingLeft: '20px', 
-                    textAlign: 'justify',
-                    wordBreak: 'break-word',
-                    hyphens: 'auto'
-                  }}>
-                    Communities identified by the EPA as disadvantaged based on environmental, health, and socioeconomic indicators.
-                    <div style={{ 
-                      marginTop: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        backgroundColor: LAYER_COLORS.epaDisadvantaged,
-                        opacity: 0.5,
-                        borderRadius: '2px'
-                      }} />
-                      <span>EPA disadvantaged community</span>
-                    </div>
+                  {expandedLayers.reservations && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#666', 
+                        marginTop: '4px', 
+                        paddingLeft: '20px', 
+                        textAlign: 'justify',
+                        wordBreak: 'break-word',
+                        hyphens: 'auto'
+                      }}>
+                        Shows boundaries of federally recognized tribal reservations and trust lands across the United States.
+                        <div style={{ 
+                          marginTop: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: LAYER_COLORS.reservations,
+                            opacity: 0.7,
+                            borderRadius: '2px'
+                          }} />
+                          <span>Tribal reservation boundary</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <input
+                        type="checkbox"
+                        checked={layerVisibility.epaDisadvantaged}
+                        onChange={() => toggleLayer('epaDisadvantaged')}
+                      />
+                      EPA Disadvantaged Communities
+                    </label>
+                    <button 
+                      onClick={() => toggleAccordion('epaDisadvantaged')}
+                      style={{ 
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0 5px'
+                      }}
+                    >
+                      {expandedLayers.epaDisadvantaged ? '−' : '+'}
+                    </button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="checkbox"
-                  checked={layerVisibility.sociallyDisadvantaged}
-                  onChange={() => toggleLayer('sociallyDisadvantaged')}
-                />
-                Socially Disadvantaged Communities
-              </label>
-              <button 
-                onClick={() => toggleAccordion('sociallyDisadvantaged')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0 5px'
-                }}
-              >
-                {expandedLayers.sociallyDisadvantaged ? '−' : '+'}
-              </button>
-            </div>
-            <AnimatePresence initial={false}>
-              {expandedLayers.sociallyDisadvantaged && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ 
-                    height: { duration: 0.2 },
-                    opacity: { duration: 0.2 }
-                  }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666', 
-                    marginTop: '4px', 
-                    paddingLeft: '20px', 
-                    textAlign: 'justify',
-                    wordBreak: 'break-word',
-                    hyphens: 'auto'
-                  }}>
-                    Areas identified as socially disadvantaged based on demographic, economic, and social vulnerability factors.
-                    <div style={{ 
-                      marginTop: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        backgroundColor: LAYER_COLORS.sociallyDisadvantaged,
-                        opacity: 0.6,
-                        borderRadius: '2px'
-                      }} />
-                      <span>Socially disadvantaged area</span>
-                    </div>
+                  {expandedLayers.epaDisadvantaged && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#666', 
+                        marginTop: '4px', 
+                        paddingLeft: '20px', 
+                        textAlign: 'justify',
+                        wordBreak: 'break-word',
+                        hyphens: 'auto'
+                      }}>
+                        Communities identified by the EPA as disadvantaged based on environmental, health, and socioeconomic indicators.
+                        <div style={{ 
+                          marginTop: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: LAYER_COLORS.epaDisadvantaged,
+                            opacity: 0.5,
+                            borderRadius: '2px'
+                          }} />
+                          <span>EPA disadvantaged community</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ color: 'black', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <input
+                        type="checkbox"
+                        checked={layerVisibility.sociallyDisadvantaged}
+                        onChange={() => toggleLayer('sociallyDisadvantaged')}
+                      />
+                      Socially Disadvantaged Communities
+                    </label>
+                    <button 
+                      onClick={() => toggleAccordion('sociallyDisadvantaged')}
+                      style={{ 
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0 5px'
+                      }}
+                    >
+                      {expandedLayers.sociallyDisadvantaged ? '−' : '+'}
+                    </button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-        
-        <div style={{ marginTop: '10px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
-          <div style={{ fontSize: '12px', marginBottom: '5px' }}>
-            Current Zoom: {currentZoom.toFixed(1)}
-            {currentZoom < 4 && (
-              <div style={{ color: '#666' }}>
-                Zoom in to see EPA data (zoom ≥ 4)
+                  {expandedLayers.sociallyDisadvantaged && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#666', 
+                        marginTop: '4px', 
+                        paddingLeft: '20px', 
+                        textAlign: 'justify',
+                        wordBreak: 'break-word',
+                        hyphens: 'auto'
+                      }}>
+                        Areas identified as socially disadvantaged based on demographic, economic, and social vulnerability factors.
+                        <div style={{ 
+                          marginTop: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: LAYER_COLORS.sociallyDisadvantaged,
+                            opacity: 0.6,
+                            borderRadius: '2px'
+                          }} />
+                          <span>Socially disadvantaged area</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
               </div>
-            )}
-            {currentZoom < 6 && (
-              <div style={{ color: '#666' }}>
-                Zoom in to see Distressed Community data (zoom ≥ 6)
+              
+              <div style={{ marginTop: '10px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
+                <div style={{ fontSize: '12px', marginBottom: '5px' }}>
+                  Current Zoom: {currentZoom.toFixed(1)}
+                  {currentZoom < 4 && (
+                    <div style={{ color: '#666' }}>
+                      Zoom in to see EPA data (zoom ≥ 4)
+                    </div>
+                  )}
+                  {currentZoom < 6 && (
+                    <div style={{ color: '#666' }}>
+                      Zoom in to see Distressed Community data (zoom ≥ 6)
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <button
+                    onClick={() => map.current && fitToAllEPAData(map.current)}
+                    style={{
+                      padding: '5px 10px',
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
+                  >
+                    Zoom to EPA Data
+                  </button>
+                  <button
+                    onClick={() => map.current && fitToDistressedData(map.current)}
+                    style={{
+                      padding: '5px 10px',
+                      backgroundColor: '#FFA07A',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FF8C61'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FFA07A'}
+                  >
+                    Zoom to Distressed Area Data
+                  </button>
+                  <button
+                    onClick={() => map.current && fitToSociallyDisadvantagedData(map.current)}
+                    style={{
+                      padding: '5px 10px',
+                      backgroundColor: '#9370DB',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#8A2BE2'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#9370DB'}
+                  >
+                    Zoom to Socially Disadvantaged
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <button
-              onClick={() => map.current && fitToAllEPAData(map.current)}
-              style={{
-                padding: '5px 10px',
-                backgroundColor: '#4CAF50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
-            >
-              Zoom to EPA Data
-            </button>
-            <button
-              onClick={() => map.current && fitToDistressedData(map.current)}
-              style={{
-                padding: '5px 10px',
-                backgroundColor: '#FFA07A',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FF8C61'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FFA07A'}
-            >
-              Zoom to Distressed Area Data
-            </button>
-            <button
-              onClick={() => map.current && fitToSociallyDisadvantagedData(map.current)}
-              style={{
-                padding: '5px 10px',
-                backgroundColor: '#9370DB',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#8A2BE2'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#9370DB'}
-            >
-              Zoom to Socially Disadvantaged
-            </button>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   )
