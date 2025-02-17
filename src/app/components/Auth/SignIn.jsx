@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks'
-import { setUser, setError, setLoading } from '@/app/store/slices/authSlice'
-import { supabase } from '@/lib/supabase'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { setUser, setError, setLoading } from '../../store/slices/authSlice'
+import { supabase } from '../../../lib/supabase'
 
 export default function SignIn() {
   const dispatch = useAppDispatch()

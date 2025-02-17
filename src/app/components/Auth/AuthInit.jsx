@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useAppDispatch } from '@/app/store/hooks'
-import { setUser } from '@/app/store/slices/authSlice'
-import { supabase } from '@/lib/supabase'
+import { useAppDispatch } from '../../store/hooks'
+import { setUser } from '../../store/slices/authSlice'
+import { supabase } from '../../../lib/supabase'
 
 export function AuthInit({ children }) {
   const dispatch = useAppDispatch()
