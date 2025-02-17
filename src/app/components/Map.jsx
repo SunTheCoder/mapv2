@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { motion, AnimatePresence } from 'framer-motion'
 import Tooltip from './Tooltip'
+import { useAppSelector } from '../store/hooks'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
@@ -460,6 +461,7 @@ const LAYER_COLORS = {
 };
 
 export default function Map() {
+  const { user } = useAppSelector(state => state.auth)
   const mapContainer = useRef(null)
   const map = useRef(null)
   const [popup] = useState(
@@ -1403,9 +1405,16 @@ export default function Map() {
       }
     });
 
-    // Cleanup function
+    // Optional: Log user state changes
+    console.log('Map loaded with user:', user?.email)
+
     return () => map.current?.remove();
   }, []);
+
+  // Optional: Track user state changes
+  useEffect(() => {
+    console.log('Auth state changed:', user ? 'Logged in' : 'Logged out')
+  }, [user])
 
   return (
     <>
