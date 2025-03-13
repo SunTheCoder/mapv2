@@ -21,45 +21,30 @@ export default function Home() {
           </div>
 
           <div className="w-full max-w-sm">
-            {user ? (
-              <div className="flex gap-4 items-center flex-col sm:flex-row">
-                <a
-                  className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-                  href="/map"
+            <div className="flex gap-4 items-center flex-col sm:flex-row">
+              <a
+                className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+                href="/map"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="dark:invert"
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className="dark:invert"
-                  >
-                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-                    <line x1="8" y1="2" x2="8" y2="18"></line>
-                    <line x1="16" y1="6" x2="16" y2="22"></line>
-                  </svg>
-                  View Map Demo
-                </a>
-              </div>
-            ) : (
-              <div className="w-full">
-                {isSignIn ? <SignIn /> : <SignUp />}
-                
-                <div className="text-center mt-4">
-                  <button
-                    onClick={() => setIsSignIn(!isSignIn)}
-                    className="text-blue-500 hover:text-blue-600"
-                  >
-                    {isSignIn ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-                  </button>
-                </div>
-              </div>
-            )}
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                  <line x1="8" y1="2" x2="8" y2="18"></line>
+                  <line x1="16" y1="6" x2="16" y2="22"></line>
+                </svg>
+                View Map Demo
+              </a>
+            </div>
           </div>
         </div>
       </main>
